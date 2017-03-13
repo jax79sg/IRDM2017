@@ -1,0 +1,10 @@
+index,content
+1,At the beginning and end of the lines below there would be a non-ascii character.
+2,Use this to test removal of ascii characters
+3,¡This is one£
+4,¤This is two¥
+5,¦This is three§
+6,¨This is four©
+7,«This is five¬
+8,®This is six¯
+9,This line should not have non-ascii files
