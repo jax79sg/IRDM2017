@@ -1,7 +1,7 @@
 # IRDM2017
 Information Retreival and Data Mining
 
-TODO for Feature Engineering:
+**TODO for Feature Engineering:**
 1. Stemming (Chun Siong: Done)
 2. TF-IDF (Chun Siong: WIP to improve performance)
 3. Spelling correction (Chun Siong: Work in progress)
@@ -16,5 +16,6 @@ TODO for Feature Engineering:
 12. LMIR.ABS
 13. LMIR.DIR
 14. LMIR.JM
+
 
 
