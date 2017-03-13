@@ -23,6 +23,15 @@ class HomeDepotFeature():
 
         #TODO: Chun Siong Working on Spell correction
 
+        # Remove non-ascii characters
+        print("Performing non-ascii removal")
+        start_time = time.time()
+        df['search_term'] = df['search_term'].map(lambda x: self.__nonascii_clean((x)))
+        print("Non-ascii clean on search_term took: %s minutes" % round(((time.time() - start_time) / 60), 2))
+        df['product_title'] = df['product_title'].map(lambda x: self.__nonascii_clean(str(x)))
+        print("Non-ascii clean on product_title took: %s minutes" % round(((time.time() - start_time) / 60), 2))
+
+
         # # Stemming
         print("Performing Stemming")
         start_time = time.time()
@@ -71,6 +80,9 @@ class HomeDepotFeature():
     def __stemming(self, s):
         return " ".join([self.stemmer.stemWord(word) for word in s.lower().split()])
 
+    def __nonascii_clean(self,s):
+        return "".join(letter for letter in s if ord(letter) < 128)
+
     def __create_TFIDF(self, df, columnName):
         print("Create Feature_TFIDF: ", columnName)
         no_dul_df = df.drop_duplicates(['product_uid', columnName])
@@ -83,7 +95,7 @@ class HomeDepotFeature():
 
 if __name__ == "__main__":
     train_filename = '../../data/train.csv'
-    test_filename = '../../data/test_small.csv'
+    test_filename = '../../data/test.csv'
     attribute_filename = '../../data/attributes.csv'
     description_filename = '../../data/product_descriptions.csv'
 
