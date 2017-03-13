@@ -28,13 +28,13 @@ class HomeDepotReader:
 
         train_df = pd.read_csv(train_filename, delimiter=',', low_memory=False, header=header, encoding="ISO-8859-1")
         test_df = pd.read_csv(test_filename, delimiter=',', low_memory=False, header=header, encoding="ISO-8859-1")
-        attribute_df = pd.read_csv(attribute_filename, delimiter=',', low_memory=False, header=header, encoding="ISO-8859-1")
+        # attribute_df = pd.read_csv(attribute_filename, delimiter=',', low_memory=False, header=header, encoding="ISO-8859-1")
         description_df = pd.read_csv(description_filename, delimiter=',', low_memory=False, header=header, encoding="ISO-8859-1")
 
         train_len = train_df.shape[0]
 
         all_df = pd.concat((train_df, test_df), axis=0, ignore_index=True)
-        all_df = pd.merge(all_df, attribute_df, how='left', on='product_uid')
+        # all_df = pd.merge(all_df, attribute_df, how='left', on='product_uid')
         all_df = pd.merge(all_df, description_df, how='left', on='product_uid')
 
         # Convert to suitable type to save some memory
