@@ -12,20 +12,20 @@ Information Retreival and Data Mining
 + Remove punctuation (Chun Siong: WIP)
 + Remove Non-ASCII (Kah Siong: Done)
 + Brand Column (Chun Siong: Done)
-+ Merge all attributes key value pair into a single text field
-+ LMIR.ABS
++ Merge all attributes key value pair into a single text field (Min: WIP)
++ LMIR.ABS (Min: Will read on LMIR in general)
 + LMIR.DIR
 + LMIR.JM
 + Word2Vec (Chun Siong: Reading up on it)
-+ Stopword removal
-
++ Stopword removal (Min: WIP)
++ KL ?
 
 **TODO for Model Selection:**
 + Pointwise
     + Ordinal Regression (Kah Siong: WIP) (MORD, and https://gist.github.com/agramfort/2071994)
-    + Support Vector Machine
+    + Support Vector Machine 
     + Boosted Regression
-    + Perception
+    + Perception <- perceptron? 
 
 + Pairwise
     + RankNet (RankLib)
