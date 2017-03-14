@@ -1,7 +1,6 @@
 # IRDM2017
 Information Retreival and Data Mining
 
-
 **TODO for Feature Engineering:**
 + Stemming (Chun Siong: Done)
 + TF-IDF (Chun Siong: WIP to improve performance)
@@ -11,17 +10,33 @@ Information Retreival and Data Mining
 + Cosine Similarity (Chun Siong: Done)
 + Other similarity measure to compare TF-IDF/BM25
 + Remove punctuation
-+ Remove Non-ASCII (Kah Siong: WIP)
++ Remove Non-ASCII (Kah Siong: Done)
 + Brand Column (Chun Siong: Done)
 + Merge all attributes key value pair into a single text field
 + LMIR.ABS
 + LMIR.DIR
 + LMIR.JM
 
+
 **TODO for Model Selection:**
 + Pointwise
-+ Pairwise
+    + Ordinal Regression (Kah Siong: WIP) (https://gist.github.com/agramfort/2071994)
+    + Support Vector Machine
+    + Boosted Regression
+    + Perception
 
++ Pairwise
+    + RankNet (RankLib)
+    + RankBoost (RankLib)
+    + Coordinate Ascent (RankLib)
+    + LambdaMart (RankLib)
+    + MART (RankLib)
+    + Random Forests (RankLib)
+
+
++ Listwise
+    + ListNet (RankLib)
+    + AdaRank (RankLib)
 
 **Goal**
 
