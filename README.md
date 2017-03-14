@@ -18,7 +18,7 @@ Information Retreival and Data Mining
 + LMIR.JM
 + Word2Vec (Chun Siong: Reading up on it)
 + Stopword removal (Min: WIP)
-
++ KL ?
 
 **TODO for Model Selection:**
 + Pointwise
