@@ -6,7 +6,7 @@ Information Retreival and Data Mining
 + TF-IDF (Chun Siong: Performance is about 10min to run everything. Previous slowness was due to sttribute.csv wrongly merged)
 + Spelling correction (Chun Siong: Work in progress. Almost done)
 + Document Length (Chun Siong: Done)
-+ BM25 
++ BM25 (Kah Siong: WIP)
 + Cosine Similarity (Chun Siong: Done)
 + Other similarity measure to compare TF-IDF/BM25
 + Remove punctuation (Chun Siong: WIP)
@@ -22,7 +22,7 @@ Information Retreival and Data Mining
 
 **TODO for Model Selection:**
 + Pointwise
-    + Ordinal Regression (Kah Siong: WIP) (https://gist.github.com/agramfort/2071994)
+    + Ordinal Regression (Kah Siong: WIP) (MORD, and https://gist.github.com/agramfort/2071994)
     + Support Vector Machine
     + Boosted Regression
     + Perception
