@@ -3,8 +3,8 @@ Information Retreival and Data Mining
 
 **TODO for Feature Engineering:**
 + Stemming + lower case (Chun Siong: Done)
-+ TF-IDF (Chun Siong: WIP to improve performance)
-+ Spelling correction (Chun Siong: Work in progress)
++ TF-IDF (Chun Siong: Performance is about 10min to run everything. Previous slowness was due to sttribute.csv wrongly merged)
++ Spelling correction (Chun Siong: Work in progress. Almost done)
 + Document Length (Chun Siong: Done)
 + BM25 
 + Cosine Similarity (Chun Siong: Done)
@@ -16,7 +16,7 @@ Information Retreival and Data Mining
 + LMIR.ABS
 + LMIR.DIR
 + LMIR.JM
-+ Word2Vec
++ Word2Vec (Chun Siong: Reading up on it)
 + Stopword removal
 
 
