@@ -87,6 +87,7 @@ class OrdinalRegressionRanker(object):
         self.fittedModel=self.model.fit(self.xTrain,self.yTrain)
         print("+++++++++++++++++++++Training completed")
 
+        ##NOTE: This evaluation is not suitable for ranking.. Need to look at DCG, NDCG, MAP instead.
         print("+++++++++++++++++++++Validation in progress")
         self.yPred=self.fittedModel.predict(self.xValidate)
         print("Precision:", precision_score(self.yValidate, self.yPred, average='micro'))
@@ -95,12 +96,17 @@ class OrdinalRegressionRanker(object):
         print("+++++++++++++++++++++Validation completed")
 
     def rank(self,testDf):
+        """
+        :param testDf:
+        :return:
+        """
         if(self.fittedModel is None):
             raise ModelNotTrainedException("Model not trained","Please make sure to run train(trainDF,validateDF)")
         else:
-            self.xValidate=testDf[self.xCol]
-            self.yValidate = testDf[self.yCol]
-            self.yPred=self.fittedModel.predict(testDf[self.xCol])
+            xTest=testDf[self.xCol]
+            self.yPred=self.fittedModel.predict(xTest)
+
+
 
 
 
