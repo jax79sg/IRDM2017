@@ -108,6 +108,25 @@ class DataPreprocessing():
         else:
             return trainDF, validationDF
 
-    def sanityIsAllProductsExistsInTrainset(self):
 
-        pass
+    def getBagOfWords(self, documentDF=None, return_type='document_tokens'):
+        """
+        To retrieve a bag of words from the documents (No pre-processing except tokenisation)
+        changelog
+        - 15/3 KS First commit
+        :param documentDF: Strictly a Nx1 Dataframe. Row representing document, Col representing a string of words
+        :param return_type: 'document_tokens' returns a NxM array (Sparse), each row representing a document, each col representing a token of the document.
+                            'array_tokens' returns a Nx1 array, each row representing a token
+        :return:
+        """
+
+        texts=[]
+        if(return_type=='document_tokens'):
+            print("Document level tokenisation")
+            texts=[words for words in (document.lower().split() for document in documentDF)]
+        elif(return_type=='array_tokens'):
+            print("Highest level tokenisation")
+            for words in (document.lower().split() for document in documentDF):
+                for word in words:
+                    texts.append(word)
+        return texts
