@@ -3,6 +3,8 @@ from HomeDepotCSVReader import HomeDepotReader
 from FeatureEngineering import HomeDepotFeature
 from HomeDepotCSVWriter import HomeDepotCSVWriter
 from XGBoostRanker import XGBoostRanker
+from OrdinalRegressionRanker import OrdinalRegressionRanker
+from DataPreprocessing import DataPreprocessing
 
 def getFeature(dataframe):
     print("####  Running: RunMe.getFeature() ####")
@@ -20,6 +22,13 @@ def runXGBoostRanker(train_df, test_df):
     print("####  Running: RunMe.runXGBoostRanker() ####")
     xgb = XGBoostRanker()
     xgb.train(train_df)
+
+def runOrdinalRegressionRanker(train_df, test_df):
+    print("####  Running: OrdinalRegression ####")
+    dp=DataPreprocessing()
+    trainDF,validateDF=dp.generateValidationSet(train_df)
+    orRanker = OrdinalRegressionRanker('logAT')
+    orRanker.train(trainDF, validateDF)
 
 if __name__ == "__main__":
     train_filename = '../../data/train.csv'
@@ -50,3 +59,4 @@ if __name__ == "__main__":
 
     # Run personal models from this point onward
     runXGBoostRanker(train_df, test_df)
+    # runOrdinalRegressionRanker(train_df, test_df)
