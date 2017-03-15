@@ -21,8 +21,8 @@ class XGBoostRanker():
                             ]]
 
         ## Setup Grid Search parameter
-        param_grid = {'max_depth': [4, 5],
-                      'min_child_weight': [2, 3],
+        param_grid = {'max_depth': [4],
+                      'min_child_weight': [3],
                       'subsample': [0.9, 1.0],
                       'learning_rate': [0.25]
                       }
