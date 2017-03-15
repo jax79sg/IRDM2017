@@ -3,8 +3,10 @@ from nltk.stem.porter import *
 from nltk.stem.snowball import SnowballStemmer
 import Stemmer
 from Feature_TFIDF import Feature_TFIDF
+from Feature_BM25 import Feature_BM25
 import time
 from HomeDepotCSVReader import HomeDepotReader
+from DataPreprocessing import DataPreprocessing
 
 class HomeDepotFeature():
     def __init__(self):
@@ -55,6 +57,25 @@ class HomeDepotFeature():
         # tfidf = Feature_TFIDF()
         # train_query_df['tfidf_product_title'] = tfidf.getCosineSimilarity(train_query_df, 'search_term', product_df, 'product_title')
 
+
+        # BM25
+        print("===========Performing BM25 computation....this may take a while")
+        print("Merging product_title and description")
+        print(list(product_df))
+        product_df['content']=product_df['product_title'].map(str) +" "+ product_df['product_description']
+        product_df.head(1)
+        print("Compute BM25")
+        bm25 = Feature_BM25(product_df)
+        print("Remove merged column")
+        product_df=product_df.drop('content', axis=1)
+        #For every training query-document pair, generate bm25
+        print("Generate bm25 column")
+        train_query_df=bm25.computeBM25Column(trainset=train_query_df,colName='bm25')
+        print("train_query_df:",list(train_query_df))
+        print("train_query_df head:",train_query_df.head(1))
+        print("Saving to csv")
+        train_query_df.to_csv('../data.prune/train_query_with_bm25.csv')
+        print("===========Completed BM25 computation")
 
         # Document Length
         print("Performing Document Length")
