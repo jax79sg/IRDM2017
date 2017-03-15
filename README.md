@@ -78,7 +78,7 @@ The relevance score was made by the following considerations
 
 | File | Description | Sample |
 | --- | --- | --- |
-| Train.csv | Our training set, contains products, searches, and relevance scores . | Id, product\_uid, product\_title, search\_term, relevance1,100001,Husky 18 in. Total Tech Bag , husky tool bag, 3 2,100002, Vigoro 60 ft. No-Dig Edging, landscape edging, 2.67 |
+| Train.csv | Our training set, contains products, searches, and relevance scores. | Id, product\_uid, product\_title, search\_term, relevance1,100001,Husky 18 in. Total Tech Bag , husky tool bag, 3 2,100002, Vigoro 60 ft. No-Dig Edging, landscape edging, 2.67 |
 | Test.csv | Same as training set, except no relevance. | Id, product\_uid, product\_title, search\_term1,100001, &quot;Husky 18 in. Total Tech Bag , husky tool bag&quot; 2,100002, &quot;Vigoro 60 ft. No-Dig Edging&quot;, &quot;landscape edging&quot; |
 | Product\_descriptions.csv | Description of each product. | &quot;product\_uid&quot;,&quot;product\_description&quot;100001,&quot;Not only do angles make joints stronger, they also provide more consistent, straight corners. …. SD screws&quot; |
 | Attributes.csv | provides extended information about a subset of the products (typically representing detailed technical specifications). Not every product will have attributes.  | &quot;product\_uid&quot;,&quot;name&quot;,&quot;value&quot;100001,&quot;Bullet01&quot;,&quot;Versatile connector for various 90° connections and home repair projects&quot; 100001,&quot;Material&quot;,&quot;Galvanized Steel&quot; |
