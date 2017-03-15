@@ -21,8 +21,9 @@ class Feature_BM25():
 
     def __getVectorForDocument(self,document):
         """
-        This class can only process vectors, so need to convert first.
-        If words of document doesn't exists, it will be excluded
+        Convert the document into list of vectors .
+        Changelog
+        - 15/3 KS First commit
         :param document: document, can also be a query. Expecting a list of words.
         :return:
         """
@@ -32,6 +33,13 @@ class Feature_BM25():
 
 
     def __convertToCorpus(self,documents):
+        """
+        Steps to make the documents compatible to gensim
+        Changelog
+        - 15/3 KS First commit
+        :param documents:
+        :return:
+        """
         #Preprocessing the text
         dp = DataPreprocessing()
         text = dp.getBagOfWords(documentDF=documents['content'], return_type='document_tokens')
