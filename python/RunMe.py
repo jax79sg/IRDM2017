@@ -67,9 +67,13 @@ if __name__ == "__main__":
                                                   test_filename,
                                                   attribute_filename,
                                                   description_filename)
+    print("train_query_df:",list(train_query_df))
+    print("product_df:", list(product_df))
+    print("attribute_df:", list(attribute_df))
+    print("test_query_df:", list(test_query_df))
 
     print("Starting Feature Engineering")
-    all_df = getFeature(train_query_df, product_df, attribute_df, test_query_df)
+    # all_df = getFeature(train_query_df, product_df, attribute_df, test_query_df)
 
 
 
