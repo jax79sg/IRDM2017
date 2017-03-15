@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-
+import DataPreprocessing as DataPreprocessing
 
 
 class HomeDepotReader:
@@ -103,6 +103,10 @@ class HomeDepotReader:
         product_df = product_df.drop('id', axis=1)
         product_df = product_df.drop('search_term', axis=1)
         product_df = pd.merge(product_df, description_df, how='left', on='product_uid')
+
+        dp= DataPreprocessing.DataPreprocessing()
+        train_query_df=dp.transformLabels(trainDF=train_query_df,newColName='relevance_int')
+
 
 
         print("all: ", len(all_df.product_uid))
