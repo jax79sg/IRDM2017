@@ -6,26 +6,26 @@ Information Retreival and Data Mining
 + TF-IDF (Chun Siong: Performance is about 10min to run everything. Previous slowness was due to sttribute.csv wrongly merged)
 + Spelling correction (Chun Siong: Work in progress. Almost done)
 + Document Length (Chun Siong: Done)
-+ BM25 
++ BM25 (Kah Siong: WIP)
 + Cosine Similarity (Chun Siong: Done)
 + Other similarity measure to compare TF-IDF/BM25
 + Remove punctuation (Chun Siong: WIP)
 + Remove Non-ASCII (Kah Siong: Done)
 + Brand Column (Chun Siong: Done)
-+ Merge all attributes key value pair into a single text field
-+ LMIR.ABS
++ Merge all attributes key value pair into a single text field (Min: WIP)
++ LMIR.ABS (Min: Will read on LMIR in general)
 + LMIR.DIR
 + LMIR.JM
 + Word2Vec (Chun Siong: Reading up on it)
-+ Stopword removal
-
++ Stopword removal (Min: WIP)
++ KL ?
 
 **TODO for Model Selection:**
 + Pointwise
-    + Ordinal Regression (Kah Siong: WIP) (https://gist.github.com/agramfort/2071994)
-    + Support Vector Machine
+    + Ordinal Regression (Kah Siong: WIP) (MORD, and https://gist.github.com/agramfort/2071994)
+    + Support Vector Machine 
     + Boosted Regression
-    + Perception
+    + Perception <- perceptron? 
 
 + Pairwise
     + RankNet (RankLib)
