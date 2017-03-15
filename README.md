@@ -6,7 +6,7 @@ Information Retreival and Data Mining
 + TF-IDF (Chun Siong: Performance is about 10min to run everything. Previous slowness was due to sttribute.csv wrongly merged)
 + Spelling correction (Chun Siong: Work in progress. Almost done)
 + Document Length (Chun Siong: Done)
-+ BM25 (Kah Siong: WIP)
++ BM25 (Kah Siong: Done)
 + Cosine Similarity (Chun Siong: Done)
 + Other similarity measure to compare TF-IDF/BM25
 + Remove punctuation (Chun Siong: WIP)
@@ -18,11 +18,11 @@ Information Retreival and Data Mining
 + LMIR.JM
 + Word2Vec (Chun Siong: Reading up on it)
 + Stopword removal (Min: WIP)
-+ KL ?
++ KL ? (What's this?)
 
 **TODO for Model Selection:**
 + Pointwise
-    + Ordinal Regression (Kah Siong: WIP) (MORD, and https://gist.github.com/agramfort/2071994)
+    + Ordinal Regression (Kah Siong: Training-Done, Prediction-Done, Evaluation-WIP) (MORD, and if MORD doesn't work then https://gist.github.com/agramfort/2071994)
     + Support Vector Machine 
     + Boosted Regression
     + Perception <- perceptron? 
@@ -34,7 +34,6 @@ Information Retreival and Data Mining
     + LambdaMart (RankLib)
     + MART (RankLib)
     + Random Forests (RankLib)
-
 
 + Listwise
     + ListNet (RankLib)
