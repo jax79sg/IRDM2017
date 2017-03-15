@@ -3,7 +3,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 import pandas as pd
 
-class DataPreprocessing(object):
+class DataPreprocessing():
 
     oldLabels=None
     newLabels = None
@@ -60,13 +60,14 @@ class DataPreprocessing(object):
         # if(trainDF==None or validationDF==None):
         #     raise InvalidDatasetException("Invalid datasets","Both train and validation datasets must be provided ")
         print("===========Tranforming labels...\nshowing current values")
-        print("trainDF:", list(trainDF))
-        print("trainDF:",trainDF.head(1))
-        print("validationDF:", list(validationDF))
-        print("validationDF:", validationDF.head(1))
 
 
         if(trainDF is not None and validationDF is not None):
+            print("trainDF:", list(trainDF))
+            print("trainDF:", trainDF.head(1))
+            print("validationDF:", list(validationDF))
+            print("validationDF:", validationDF.head(1))
+
             #merge train and validation dataframe
             trainLabelDF=pd.DataFrame(trainDF[trainLabelColumn])
             print("Extracted trainLabelDF:",list(trainLabelDF),"\n",type(trainLabelDF),trainLabelDF.shape,trainLabelDF.head(1))
@@ -76,6 +77,9 @@ class DataPreprocessing(object):
             validationLabelDF.columns = [trainLabelColumn]
             self.mergedLabelDF=trainLabelDF.append(validationLabelDF)
         elif(trainDF is not None and validationDF is None):
+            print("trainDF:", list(trainDF))
+            print("trainDF:", trainDF.head(1))
+
             self.mergedLabelDF=pd.DataFrame(trainDF[trainLabelColumn])
         else:
             raise InvalidDatasetException("Invalid dataset","The training set must exists")
@@ -91,8 +95,19 @@ class DataPreprocessing(object):
         print('newLabels:',self.newLabels)
 
         #Label replacement
+        print("Creating new column for training")
         trainDF[newColName] = trainDF[trainLabelColumn].map(self.__replaceLabel)
         if (validationDF is not None):
+            print("Creating new column for validation")
             validationDF[newColName] = validationDF[validationLabelColumn].map(self.__replaceLabel)
         print("===========Transform labels completed")
-        return trainDF,validationDF
+
+
+        if (validationDF is None):
+            return trainDF
+        else:
+            return trainDF, validationDF
+
+    def sanityIsAllProductsExistsInTrainset(self):
+
+        pass
