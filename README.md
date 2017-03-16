@@ -3,13 +3,13 @@ Information Retreival and Data Mining
 
 **TODO for Feature Engineering:**
 + Stemming + lower case (Chun Siong: Done)
-+ TF-IDF (Chun Siong: Performance is about 10min to run everything. Previous slowness was due to sttribute.csv wrongly merged)
-+ Spelling correction (Chun Siong: Work in progress. Almost done)
++ TF-IDF (Chun Siong: Done)
++ Spelling correction (Chun Siong: Done)
 + Document Length (Chun Siong: Done)
 + BM25 (Kah Siong: Done)
 + Cosine Similarity (Chun Siong: Done)
 + Other similarity measure to compare TF-IDF/BM25
-+ Remove punctuation (Chun Siong: WIP)
++ Remove punctuation (Chun Siong: Done. There is a tokeniser based on RE under FeatureEngineering.py)
 + Remove Non-ASCII (Kah Siong: Done)
 + Brand Column (Chun Siong: Done)
 + Merge all attributes key value pair into a single text field (Min: WIP)
@@ -19,6 +19,8 @@ Information Retreival and Data Mining
 + Word2Vec (Chun Siong: Reading up on it)
 + Stopword removal (Min: WIP)
 + KL ? (What's this?)
++ LDA (Chun Siong: Reading literature to see if anyone tried it for IR)
++ Output all computed feature to Ranklib format
 
 **TODO for Model Selection:**
 + Pointwise
