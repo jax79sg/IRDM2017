@@ -6,6 +6,7 @@ import numpy as np
 import nltk
 import time
 import pandas as pd
+import FeatureEngineering
 
 class Feature_TFIDF():
     # def __init__(self):
@@ -14,7 +15,8 @@ class Feature_TFIDF():
 
     def createTFIDF(self, df, columnName):
         start_time = time.time()
-        tfidf = TfidfVectorizer(tokenizer=nltk.word_tokenize, smooth_idf=True, use_idf=True, sublinear_tf=True)
+        tfidf = TfidfVectorizer(tokenizer=FeatureEngineering.homedepotTokeniser, smooth_idf=True, use_idf=True, sublinear_tf=True)
+        # tfidf = TfidfVectorizer(tokenizer=nltk.word_tokenize, smooth_idf=True, use_idf=True, sublinear_tf=True)
         print("TfidfVectorizer init took: %s minutes" % round(((time.time() - start_time) / 60), 2))
         tfs = tfidf.fit_transform(df[columnName])
         print("TfidfVectorizer fit took: %s minutes" % round(((time.time() - start_time) / 60), 2))
@@ -22,68 +24,107 @@ class Feature_TFIDF():
         score_queries = tfidf.transform(df[columnName])
         print("TfidfVectorizer transform 1 took: %s minutes" % round(((time.time() - start_time) / 60), 2))
 
+
     def getCosineSimilarity(self, source_df, source_columnName, target_df, target_columnName):
         start_time = time.time()
         # print("Into getCosineSimilarity")
-        tfidf = TfidfVectorizer(tokenizer=nltk.word_tokenize, smooth_idf=True, use_idf=True, sublinear_tf=True)
+        tfidf = TfidfVectorizer(tokenizer=nltk.word_tokenize, smooth_idf=True, use_idf=True, sublinear_tf=True,
+                                stop_words=None, lowercase=True)
         print("TfidfVectorizer init took: %s minutes" % round(((time.time() - start_time) / 60), 2))
         tfs = tfidf.fit_transform(target_df[target_columnName])
         print("TfidfVectorizer fit took: %s minutes" % round(((time.time() - start_time) / 60), 2))
         # print(tfs.toarray())
 
         score_queries = tfidf.transform(source_df[source_columnName])
-        print("Score_queries: \n", score_queries)
+        # print("Score_queries: \n", score_queries)
         print("TfidfVectorizer transform 1 took: %s minutes" % round(((time.time() - start_time) / 60), 2))
 
         # print("score_queries: ", score_queries[0])
         # print("source_df: ", source_df.info())
         # print("=================================================")
         score_target = tfidf.transform(target_df[target_columnName])
-        print("Score_target: \n", score_target)
+        # print("Score_target: \n", score_target)
         print("TfidfVectorizer transform 2 took: %s minutes" % round(((time.time() - start_time) / 60), 2))
 
+        # idx = target_df[target_df['product_uid'] == source_df['product_uid']].index.tolist()
+        # idx = source_df['product_uid'].map(lambda x:  target_df[target_df['product_uid'] == x].index)
+        idx = [target_df[target_df['product_uid'] == uid].index for uid in source_df.product_uid]
+        print("TfidfVectorizer idx took: %s minutes" % round(((time.time() - start_time) / 60), 2))
+        # print("idx: ", idx)
+        # print("target_df['product_uid']: ", target_df['product_uid'])
+        # print("source_df['product_uid']: ", source_df['product_uid'])
+        # print("len", len(idx))
+        # for i in range(len(idx)):
+        #     print(target_df.product_uid.iloc[idx[i]])
+        # print("type: ", type(score_queries[0][0]))
 
-        result = cosine_similarity(score_queries, score_target)
+        print(cosine_similarity(score_queries, score_target))
+        # result = np.array([cosine_similarity(score_queries[i], score_target[idx[i]]) for i in range(len(idx))])
+        # result = np.array([cosine_similarity(score_queries[i], score_target[idx[i]]) for i in range(len(idx))])
+
+        result = []
+        batch_size = 2000
+        # Batch it
+        for i in range(int(len(source_df)/batch_size)):
+            inter_result = cosine_similarity(score_queries[i*batch_size:(i*batch_size)+batch_size], score_target)
+            # print("inter_result: \n", inter_result)
+            # print("len of inter: ", len(inter_result))
+            for j in range(inter_result.shape[0]):
+                result.append(float(inter_result[j][idx[(i*batch_size)+j]]))
+
+        # Compute the remaining
+        start = int(len(source_df)/batch_size)*batch_size
+        end = len(source_df)
+        inter_result = cosine_similarity(score_queries[start: end], score_target)
+
+        # print("inter_result: \n", inter_result)
+        # print("len of inter: ", len(inter_result))
+        for j in range(inter_result.shape[0]):
+            result.append(float(inter_result[j][idx[start+j]]))
+
+
         print("TfidfVectorizer Cosine similarity took: %s minutes" % round(((time.time() - start_time) / 60), 2))
-        print("result: \n", result)
+        # result = result.reshape(result.shape[0])
+        # print("result2: \n", result)
         # return result.reshape(result.shape[0])
+        return result
 
 
-    def getCosineSimilarity_old(self, queries, targets, documents):
-        start_time = time.time()
-        # print("Into getCosineSimilarity")
-        tfidf = TfidfVectorizer(tokenizer=nltk.word_tokenize, smooth_idf=True, use_idf=True, sublinear_tf=True)
-        print("TfidfVectorizer init took: %s minutes" % round(((time.time() - start_time) / 60), 2))
-        tfs = tfidf.fit_transform(documents)
-        print("TfidfVectorizer fit took: %s minutes" % round(((time.time() - start_time) / 60), 2))
-        # print(tfs.toarray())
-
-        score_queries = tfidf.transform(queries)
-        print("TfidfVectorizer transform 1 took: %s minutes" % round(((time.time() - start_time) / 60), 2))
-        # feature_names = tfidf.get_feature_names()
-        # for col in response.nonzero()[1]:
-        #     print(feature_names[col], ' - ', response[0, col])
-
-
-        # tfidf = TfidfVectorizer(tokenizer=nltk.word_tokenize, smooth_idf=True, use_idf=True, sublinear_tf=True)
-        # tfs = tfidf.fit_transform(documents.values())
-        # print(tfs.toarray())
-
-        score_targets = tfidf.transform(targets)
-        print("TfidfVectorizer transform 2 took: %s minutes" % round(((time.time() - start_time) / 60), 2))
-        # feature_names = tfidf.get_feature_names()
-        # for col in response.nonzero()[1]:
-        #     print(feature_names[col], ' - ', response[0, col])
-
-
-        # print(cosine_similarity(score_queries, score_targets))
-
-        # print([cosine_similarity(q, t) for q, t in zip(score_queries, score_targets)])
-        result = np.array([cosine_similarity(q, t) for q, t in zip(score_queries, score_targets)])
-        print("TfidfVectorizer Cosine similarity took: %s minutes" % round(((time.time() - start_time) / 60), 2))
-        # print (result.reshape(result.shape[0]))
-
-        return result.reshape(result.shape[0])
+    # def getCosineSimilarity_old(self, queries, targets, documents):
+    #     start_time = time.time()
+    #     # print("Into getCosineSimilarity")
+    #     tfidf = TfidfVectorizer(tokenizer=nltk.word_tokenize, smooth_idf=True, use_idf=True, sublinear_tf=True)
+    #     print("TfidfVectorizer init took: %s minutes" % round(((time.time() - start_time) / 60), 2))
+    #     tfs = tfidf.fit_transform(documents)
+    #     print("TfidfVectorizer fit took: %s minutes" % round(((time.time() - start_time) / 60), 2))
+    #     # print(tfs.toarray())
+    #
+    #     score_queries = tfidf.transform(queries)
+    #     print("TfidfVectorizer transform 1 took: %s minutes" % round(((time.time() - start_time) / 60), 2))
+    #     # feature_names = tfidf.get_feature_names()
+    #     # for col in response.nonzero()[1]:
+    #     #     print(feature_names[col], ' - ', response[0, col])
+    #
+    #
+    #     # tfidf = TfidfVectorizer(tokenizer=nltk.word_tokenize, smooth_idf=True, use_idf=True, sublinear_tf=True)
+    #     # tfs = tfidf.fit_transform(documents.values())
+    #     # print(tfs.toarray())
+    #
+    #     score_targets = tfidf.transform(targets)
+    #     print("TfidfVectorizer transform 2 took: %s minutes" % round(((time.time() - start_time) / 60), 2))
+    #     # feature_names = tfidf.get_feature_names()
+    #     # for col in response.nonzero()[1]:
+    #     #     print(feature_names[col], ' - ', response[0, col])
+    #
+    #
+    #     # print(cosine_similarity(score_queries, score_targets))
+    #
+    #     # print([cosine_similarity(q, t) for q, t in zip(score_queries, score_targets)])
+    #     result = np.array([cosine_similarity(q, t) for q, t in zip(score_queries, score_targets)])
+    #     print("TfidfVectorizer Cosine similarity took: %s minutes" % round(((time.time() - start_time) / 60), 2))
+    #     # print (result.reshape(result.shape[0]))
+    #
+    #     return result.reshape(result.shape[0])
 
 
         # cvec = CountVectorizer()

@@ -1,12 +1,15 @@
 import pandas as pd
-from nltk.stem.porter import *
-from nltk.stem.snowball import SnowballStemmer
+# from nltk.stem.porter import *
+# from nltk.stem.snowball import SnowballStemmer
 import Stemmer
 from Feature_TFIDF import Feature_TFIDF
 from Feature_BM25 import Feature_BM25
 import time
 from HomeDepotCSVReader import HomeDepotReader
 from DataPreprocessing import DataPreprocessing
+import numpy as np
+import Feature_Spelling
+import re
 
 class HomeDepotFeature():
     def __init__(self):
@@ -22,7 +25,10 @@ class HomeDepotFeature():
         # Create Brand Column
         product_df = self.__createBrandColumn(product_df, attribute_df)
 
-        # TODO: Chun Siong Working on Spell correction
+        # Perform spell correction on search_term
+        print("Performing spell correction on search term")
+        train_query_df['search_term'] = train_query_df['search_term'].map(lambda x: self.__spell_correction(x))
+
 
         # Remove non-ascii characters
         print("Performing non-ascii removal")
@@ -45,18 +51,14 @@ class HomeDepotFeature():
         print("Stemming product_description took: %s minutes" % round(((time.time() - start_time) / 60), 2))
 
         # TF-IDF
-        # print("Performing TF-IDF")
-        # tfidf = self.__create_TFIDF(train_query_df, product_df, "product_title")
-        # train_query_df['tfidf_product_title'] = tfidf
-        # tfidf = self.__create_TFIDF(train_query_df, product_df, "product_description")
-        # train_query_df['tfidf_product_description'] = tfidf
-        # tfidf = self.__create_TFIDF(train_query_df, product_df, "value")
-        # train_query_df['tfidf_attributes_value'] = tfidf
-        # tfidf = self.__create_TFIDF(train_query_df, product_df, "brand")
-        # train_query_df['tfidf_brand'] = tfidf
-        # tfidf = Feature_TFIDF()
-        # train_query_df['tfidf_product_title'] = tfidf.getCosineSimilarity(train_query_df, 'search_term', product_df, 'product_title')
-
+        print("Performing TF-IDF")
+        tfidf = Feature_TFIDF()
+        train_query_df['tfidf_product_title'] = tfidf.getCosineSimilarity(train_query_df, 'search_term', product_df,
+                                                                          'product_title')
+        train_query_df['tfidf_product_brand'] = tfidf.getCosineSimilarity(train_query_df, 'search_term', product_df,
+                                                                          'product_brand')
+        train_query_df['tfidf_product_description'] = tfidf.getCosineSimilarity(train_query_df, 'search_term', product_df,
+                                                                          'product_description')
 
         # BM25
         print("===========Performing BM25 computation....this may take a while")
@@ -79,16 +81,16 @@ class HomeDepotFeature():
 
         # Document Length
         print("Performing Document Length")
-        product_df['len_product_title'] = product_df['product_title'].map(lambda x: len(x.split()))
+        product_df['len_product_title'] = product_df['product_title'].map(lambda x: len(homedepotTokeniser(x)))
         train_query_df = pd.merge(train_query_df, product_df[['product_uid', 'len_product_title']], how='left',
                                   on='product_uid')
-        product_df['len_product_description'] = product_df['product_description'].map(lambda x: len(x.split()))
+        product_df['len_product_description'] = product_df['product_description'].map(lambda x: len(homedepotTokeniser(x)))
         train_query_df = pd.merge(train_query_df, product_df[['product_uid', 'len_product_description']], how='left',
                                   on='product_uid')
-        product_df['len_brand'] = product_df['product_brand'].map(lambda x: len(str(x).split()))
+        product_df['len_brand'] = product_df['product_brand'].map(lambda x: len(homedepotTokeniser(x)))
         train_query_df = pd.merge(train_query_df, product_df[['product_uid', 'len_brand']], how='left',
                                   on='product_uid')
-        train_query_df['len_search_term'] = train_query_df['search_term'].map(lambda x: len(str(x).split()))
+        train_query_df['len_search_term'] = train_query_df['search_term'].map(lambda x: len(homedepotTokeniser(x)))
 
 
         print(train_query_df.info())
@@ -121,8 +123,8 @@ class HomeDepotFeature():
         print("Stemming search_term took: %s minutes" % round(((time.time() - start_time) / 60), 2))
         df['product_title'] = df['product_title'].map(lambda x: self.__stemming(str(x)))
         print("Stemming product_title took: %s minutes" % round(((time.time() - start_time) / 60), 2))
-        # df['brand'] = df['brand'].map(lambda x: self.__stemming(str(x)))
-        # print("Stemming brand took: %s minutes" % round(((time.time() - start_time) / 60), 2))
+        df['product_brand'] = df['product_brand'].map(lambda x: self.__stemming(str(x)))
+        print("Stemming brand took: %s minutes" % round(((time.time() - start_time) / 60), 2))
 
         # TF-IDF
         print("Performing TF-IDF")
@@ -130,10 +132,10 @@ class HomeDepotFeature():
         df['tfidf_product_title'] = tfidf
         tfidf = self.__create_TFIDF(df, "product_description")
         df['tfidf_product_description'] = tfidf
-        # tfidf = self.__create_TFIDF(df, "value")
-        # df['tfidf_attributes_value'] = tfidf
-        # tfidf = self.__create_TFIDF(df, "brand")
-        # df['tfidf_brand'] = tfidf
+        tfidf = self.__create_TFIDF(df, "value")
+        df['tfidf_attributes_value'] = tfidf
+        tfidf = self.__create_TFIDF(df, "brand")
+        df['tfidf_brand'] = tfidf
 
         # Document Length
         print("Performing Document Length")
@@ -150,30 +152,25 @@ class HomeDepotFeature():
         brand_df = attribute_df[attribute_df.name == "MFG Brand Name"][['product_uid', 'value']]
         brand_df.rename(columns={'value': 'product_brand'}, inplace=True)
         product_df = pd.merge(product_df, brand_df, how='left', on='product_uid')
+        # print("No. of product without brand: ", product_df.product_brand.isnull().sum())
+        product_df.product_brand.replace(np.NaN, 'unknown_brand_value', inplace=True)
         return product_df
 
     def __spell_correction(self, s):
-        raise NotImplementedError
+        return " ".join([Feature_Spelling.spell_dict[word] if word in Feature_Spelling.spell_dict else word
+                         for word in homedepotTokeniser(s)])
 
     def __stemming(self, s):
-        return " ".join([self.stemmer.stemWord(word) for word in s.lower().split()])
+        # return " ".join([self.stemmer.stemWord(word) for word in s.lower().split()])
+        return " ".join([self.stemmer.stemWord(word) for word in homedepotTokeniser(s)])
 
     def __nonascii_clean(self,s):
         return "".join(letter for letter in s if ord(letter) < 128)
 
-    # def __create_TFIDF(self, df, columnName):
-    #     tfidf = Feature_TFIDF()
-    #     tfidf.getCosineSimilarity_2(source_df, source_columnName, target_df, target_columnName)
-    #
-    # def __create_TFIDF_old(self, df, columnName):
-    #     print("Create Feature_TFIDF: ", columnName)
-    #     no_dul_df = df.drop_duplicates(['product_uid', columnName])
-    #
-    #     return Feature_TFIDF().getCosineSimilarity(queries=df.search_term,
-    #                                                targets=df[columnName],
-    #                                                documents=no_dul_df[columnName])
 
-    # def __create_DocumentLength(self, df, columnName):
+tokeniser = re.compile("(?:[A-Za-z]{1,2}\.)+|[\w\']+|\?\!")
+def homedepotTokeniser(string):
+    return tokeniser.findall(string)
 
 if __name__ == "__main__":
     train_filename = '../../data/train.csv'
