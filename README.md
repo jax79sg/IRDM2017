@@ -20,7 +20,6 @@ Information Retreival and Data Mining
 + Stopword removal (Min: WIP)
 + KL ? (What's this?) Kulback lieber, i've seen it mentioned in comparisons which include BM25, LMIR, KL
 + LDA (Chun Siong: Reading literature to see if anyone tried it for IR)
-+ Neural networks (Min: Reading on this https://arxiv.org/pdf/1701.07795.pdf)
 + Output all computed feature to Ranklib format
 
 **TODO for Model Selection:**
@@ -41,6 +40,9 @@ Information Retreival and Data Mining
 + Listwise
     + ListNet (RankLib)
     + AdaRank (RankLib)
+
++ Neural network
+    + Match tensor - (Min: Reading on this https://arxiv.org/pdf/1701.07795.pdf)
 
 **Goal**
 
