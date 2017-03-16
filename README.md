@@ -18,7 +18,7 @@ Information Retreival and Data Mining
 + LMIR.JM
 + Word2Vec (Chun Siong: Reading up on it)
 + Stopword removal (Min: WIP)
-+ KL ? (What's this?) Kulback lieber, i've seen it mentioned in comparisons which include BM25, LMIR, KL
++ KL ? (What's this?) Kulback lieber, i've seen it mentioned in comparisons which include BM25, LMIR, KL https://www.microsoft.com/en-us/research/publication/relevance-ranking-using-kernels/
 + LDA (Chun Siong: Reading literature to see if anyone tried it for IR)
 + Output all computed feature to Ranklib format
 
