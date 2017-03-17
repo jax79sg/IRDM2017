@@ -10,6 +10,7 @@ from DataPreprocessing import DataPreprocessing
 import numpy as np
 import Feature_Spelling
 import re
+from nltk.corpus import stopwords
 
 class HomeDepotFeature():
     def __init__(self):
@@ -37,6 +38,14 @@ class HomeDepotFeature():
         print("Non-ascii clean on search_term took: %s minutes" % round(((time.time() - start_time) / 60), 2))
         product_df['product_title'] = product_df['product_title'].map(lambda x: self.__nonascii_clean(str(x)))
         print("Non-ascii clean on product_title took: %s minutes" % round(((time.time() - start_time) / 60), 2))
+
+        # Stopwords removal
+        print("Performing stopwords removal")
+        start_time = time.time()
+        train_query_df['search_term'] = train_query_df['search_term'].map(lambda x: self.__stopword_removal((x)))
+        print("stopwords removal on search_term took: %s minutes" % round(((time.time() - start_time) / 60), 2))
+        product_df['product_title'] = product_df['product_title'].map(lambda x: self.__stopword_removal(str(x)))
+        print("stopwords removal on product_title took: %s minutes" % round(((time.time() - start_time) / 60), 2))
 
         # # Stemming
         print("Performing Stemming")
@@ -167,6 +176,8 @@ class HomeDepotFeature():
     def __nonascii_clean(self,s):
         return "".join(letter for letter in s if ord(letter) < 128)
 
+    def __stopword_removal(self, s):
+        return " ".join([word for word in homedepotTokeniser(s) if not word in stopwords.words('english')])
 
 tokeniser = re.compile("(?:[A-Za-z]{1,2}\.)+|[\w\']+|\?\!")
 def homedepotTokeniser(string):
