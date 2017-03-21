@@ -16,10 +16,10 @@ Information Retreival and Data Mining
 + LMIR.ABS (Min: Will read on LMIR in general)
 + LMIR.DIR
 + LMIR.JM
-+ Word2Vec (Chun Siong: Reading up on it)
++ Word2Vec (Chun Siong: Almost done. Doing final testing)
 + Stopword removal (Min: WIP)
 + KL ? (What's this?) Kulback lieber, i've seen it mentioned in comparisons which include BM25, LMIR, KL https://www.microsoft.com/en-us/research/publication/relevance-ranking-using-kernels/
-+ LDA (Chun Siong: Reading literature to see if anyone tried it for IR)
++ LDA (Chun Siong: Feasible. Looking at past performance)
 + Output all computed feature to Ranklib format
 
 **TODO for Model Selection:**
