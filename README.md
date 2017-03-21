@@ -6,7 +6,7 @@ Information Retreival and Data Mining
 + TF-IDF (Chun Siong: Done)
 + Spelling correction (Chun Siong: Done)
 + Document Length (Chun Siong: Done)
-+ BM25 (Kah Siong: Done)
++ BM25 on product title and description combined (Kah Siong: Done)
 + Cosine Similarity (Chun Siong: Done)
 + Other similarity measure to compare TF-IDF/BM25
 + Remove punctuation (Chun Siong: Done. There is a tokeniser based on RE under FeatureEngineering.py)
@@ -43,6 +43,9 @@ Information Retreival and Data Mining
 
 + Neural network
     + Match tensor - (Min: Reading on this https://arxiv.org/pdf/1701.07795.pdf)
+
+**TODO for Evaluation:**
+    + NDCG (Kah Siong: Reading up)
 
 **Goal**
 
