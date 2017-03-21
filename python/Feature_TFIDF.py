@@ -13,16 +13,16 @@ class Feature_TFIDF():
     #     print("init: Feature_TFIDF")
     #     # nltk.download('punkt')
 
-    def createTFIDF(self, df, columnName):
-        start_time = time.time()
-        tfidf = TfidfVectorizer(tokenizer=FeatureEngineering.homedepotTokeniser, smooth_idf=True, use_idf=True, sublinear_tf=True)
-        # tfidf = TfidfVectorizer(tokenizer=nltk.word_tokenize, smooth_idf=True, use_idf=True, sublinear_tf=True)
-        print("TfidfVectorizer init took: %s minutes" % round(((time.time() - start_time) / 60), 2))
-        tfs = tfidf.fit_transform(df[columnName])
-        print("TfidfVectorizer fit took: %s minutes" % round(((time.time() - start_time) / 60), 2))
-
-        score_queries = tfidf.transform(df[columnName])
-        print("TfidfVectorizer transform 1 took: %s minutes" % round(((time.time() - start_time) / 60), 2))
+    # def createTFIDF(self, df, columnName):
+    #     start_time = time.time()
+    #     tfidf = TfidfVectorizer(tokenizer=FeatureEngineering.homedepotTokeniser, smooth_idf=True, use_idf=True, sublinear_tf=True)
+    #     # tfidf = TfidfVectorizer(tokenizer=nltk.word_tokenize, smooth_idf=True, use_idf=True, sublinear_tf=True)
+    #     print("TfidfVectorizer init took: %s minutes" % round(((time.time() - start_time) / 60), 2))
+    #     tfs = tfidf.fit_transform(df[columnName])
+    #     print("TfidfVectorizer fit took: %s minutes" % round(((time.time() - start_time) / 60), 2))
+    #
+    #     score_queries = tfidf.transform(df[columnName])
+    #     print("TfidfVectorizer transform 1 took: %s minutes" % round(((time.time() - start_time) / 60), 2))
 
 
     def getCosineSimilarity(self, source_df, source_columnName, target_df, target_columnName):
@@ -58,7 +58,7 @@ class Feature_TFIDF():
         #     print(target_df.product_uid.iloc[idx[i]])
         # print("type: ", type(score_queries[0][0]))
 
-        print(cosine_similarity(score_queries, score_target))
+        # print(cosine_similarity(score_queries, score_target))
         # result = np.array([cosine_similarity(score_queries[i], score_target[idx[i]]) for i in range(len(idx))])
         # result = np.array([cosine_similarity(score_queries[i], score_target[idx[i]]) for i in range(len(idx))])
 

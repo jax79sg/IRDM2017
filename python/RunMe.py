@@ -31,8 +31,8 @@ def runOrdinalRegressionRanker(train_df, test_df):
     orRanker.train(trainDF, validateDF)
 
 if __name__ == "__main__":
-    train_filename = '../../data/train_baby.csv'
-    test_filename = '../../data/test_baby.csv'
+    train_filename = '../../data/train.csv'
+    test_filename = '../../data/test.csv'
     attribute_filename = '../../data/attributes.csv'
     description_filename = '../../data/product_descriptions.csv'
 
