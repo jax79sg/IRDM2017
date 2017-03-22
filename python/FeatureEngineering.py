@@ -3,6 +3,7 @@ import pandas as pd
 # from nltk.stem.snowball import SnowballStemmer
 import Stemmer
 from Feature_TFIDF import Feature_TFIDF
+from Feature_Doc2Vec import Feature_Doc2Vec
 from Feature_BM25 import Feature_BM25
 import time
 from HomeDepotCSVReader import HomeDepotReader
@@ -11,6 +12,7 @@ import numpy as np
 import Feature_Spelling
 import re
 from nltk.corpus import stopwords
+import nltk
 
 class HomeDepotFeature():
     def __init__(self):
@@ -38,6 +40,9 @@ class HomeDepotFeature():
         print("Non-ascii clean on search_term took: %s minutes" % round(((time.time() - start_time) / 60), 2))
         product_df['product_title'] = product_df['product_title'].map(lambda x: self.__nonascii_clean(str(x)))
         print("Non-ascii clean on product_title took: %s minutes" % round(((time.time() - start_time) / 60), 2))
+
+        # Run this to download the download the stopword list if you hit error
+        # nltk.download()
 
         # Stopwords removal
         print("Performing stopwords removal")
@@ -69,11 +74,25 @@ class HomeDepotFeature():
         train_query_df['tfidf_product_description'] = tfidf.getCosineSimilarity(train_query_df, 'search_term', product_df,
                                                                           'product_description')
 
+        # Doc2Vec
+        print("Performing Doc2Vec")
+        doc2vec = Feature_Doc2Vec()
+        train_query_df['doc2vec_product_title'] = doc2vec.getCosineSimilarity(train_query_df, 'search_term', product_df,
+                                                                          'product_title')
+        doc2vec = Feature_Doc2Vec()
+        train_query_df['doc2vec_product_brand'] = doc2vec.getCosineSimilarity(train_query_df, 'search_term', product_df,
+                                                                          'product_brand')
+        doc2vec = Feature_Doc2Vec()
+        train_query_df['doc2vec_product_description'] = doc2vec.getCosineSimilarity(train_query_df, 'search_term', product_df,
+                                                                          'product_description')
+
         # BM25
         print("===========Performing BM25 computation....this may take a while")
         print("Merging product_title and description")
         print(list(product_df))
-        product_df['content']=product_df['product_title'].map(str) +" "+ product_df['product_description']
+        product_df['content']=product_df['product_title'].map(str) +" "+ \
+                              product_df['product_description'].map(str) + " " + \
+                              product_df['product_brand'].map(str)
         product_df.head(1)
         print("Compute BM25")
         bm25 = Feature_BM25(product_df)

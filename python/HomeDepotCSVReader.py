@@ -103,16 +103,18 @@ class HomeDepotReader:
         product_df = product_df.drop('search_term', axis=1)
         product_df = pd.merge(product_df, description_df, how='left', on='product_uid')
 
-        dp= DataPreprocessing.DataPreprocessing()
-        train_query_df=dp.transformLabels(trainDF=train_query_df,newColName='relevance_int')
+        dp = DataPreprocessing.DataPreprocessing()
+        train_query_df = dp.transformLabels(trainDF=train_query_df,newColName='relevance_int')
 
+        # Add a index column in train to reference to product
+        train_query_df['product_idx'] = [product_df[product_df['product_uid'] == uid].index for uid in train_query_df.product_uid]
 
-
-        print("all: ", len(all_df.product_uid))
-        print("all unique: ", len(all_df.product_uid.unique()))
+        # print("all: ", len(all_df.product_uid))
+        # print("all unique: ", len(all_df.product_uid.unique()))
         # print("description_df: ", len(description_df))
         # print("description_df unique: ", len(description_df.product_uid.unique()))
-        print("product_df: ", len(product_df))
-        print("product_df info", product_df.info())
+        # print("product_df: ", len(product_df))
+        # print("product_df info", product_df.info())
+        # print("train_query_df.info: ", train_query_df.info())
 
         return [train_query_df, product_df, attribute_df, test_query_df]
