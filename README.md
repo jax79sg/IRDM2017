@@ -7,8 +7,9 @@ Information Retreival and Data Mining
 + Spelling correction (Chun Siong: Done)
 + Document Length (Chun Siong: Done)
 + BM25 on product title and description combined (Kah Siong: Done)
-+ Cosine Similarity (Chun Siong: Done)
-+ Other similarity measure to compare TF-IDF/BM25
++ Query expansion (Kah Siong: Reading up)
++ Similarity measure
+    + Cosine Similarity (Chun Siong: Done)
 + Remove punctuation (Chun Siong: Done. There is a tokeniser based on RE under FeatureEngineering.py)
 + Remove Non-ASCII (Kah Siong: Done)
 + Brand Column (Chun Siong: Done)
@@ -21,7 +22,7 @@ Information Retreival and Data Mining
 + KL ? (What's this?) Kulback lieber, i've seen it mentioned in comparisons which include BM25, LMIR, KL https://www.microsoft.com/en-us/research/publication/relevance-ranking-using-kernels/
 + LDA (Chun Siong: Reading)
 + Output all computed feature to Ranklib format
-+ Evaluator class to provide various evaluation like RMSE, DCG,....
+
 
 **TODO for Model Selection:**
 + Pointwise
@@ -46,7 +47,8 @@ Information Retreival and Data Mining
     + Match tensor - (Min: Reading on this https://arxiv.org/pdf/1701.07795.pdf)
 
 **TODO for Evaluation:**
-    + NDCG (Kah Siong: Reading up)
+    + NDCG (Kah Siong: Done) Note: libRank has in-built implementation for java
+    + RMSE
 
 **Goal**
 
