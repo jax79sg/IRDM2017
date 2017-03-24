@@ -141,16 +141,16 @@ class Feature_BM25():
         :return:
         """
         #Convert query into vector
-        print("===== Single scoring BM25 for query ",query, " against documents ",document)
+        # print("===== Single scoring BM25 for query ",query, " against documents ",document)
         queryVector = self.__getVectorForDocument(query)[0]
-        print("queryVector:",queryVector)
+        # print("queryVector:",queryVector)
 
         # Find out the index of the document in the document corpus
         documentindex = self.productDict[document]
 
         score=self.bm25.get_score(queryVector, documentindex, self.avgIDF)
-        print("score:",score)
-        print("===== Scoring BM25 for query completed")
+        # print("score:",score)
+        # print("===== Scoring BM25 for query completed")
         return score
 
     def scores(self,query,documents):
