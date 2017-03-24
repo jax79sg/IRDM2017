@@ -20,105 +20,114 @@ class HomeDepotFeature():
         # self.stemmer = SnowballStemmer('english')
         self.stemmer = Stemmer.Stemmer('english')
 
-    def getFeature(self, train_query_df, product_df, attribute_df, test_query_df):
+    def getFeature(self, train_query_df, product_df, attribute_df, test_query_df, features="brand,spelling,nonascii,stopwords,stemming,tfidf,doc2vec,bm25,doclength"):
         ## Please feel free to add feature into this method.
         ## For testing, you may want to comment out some feature generation to save time
         ## as some takes a long time to run.
 
-        # Create Brand Column
-        product_df = self.__createBrandColumn(product_df, attribute_df)
 
-        # Perform spell correction on search_term
-        print("Performing spell correction on search term")
-        train_query_df['search_term'] = train_query_df['search_term'].map(lambda x: self.__spell_correction(x))
+        if features.find("brand") != -1:
+            # Create Brand Column
+            product_df = self.__createBrandColumn(product_df, attribute_df)
 
+        if features.find("spelling") != -1:
+            # Perform spell correction on search_term
+            print("Performing spell correction on search term")
+            train_query_df['search_term'] = train_query_df['search_term'].map(lambda x: self.__spell_correction(x))
 
-        # Remove non-ascii characters
-        print("Performing non-ascii removal")
-        start_time = time.time()
-        train_query_df['search_term'] = train_query_df['search_term'].map(lambda x: self.__nonascii_clean((x)))
-        print("Non-ascii clean on search_term took: %s minutes" % round(((time.time() - start_time) / 60), 2))
-        product_df['product_title'] = product_df['product_title'].map(lambda x: self.__nonascii_clean(str(x)))
-        print("Non-ascii clean on product_title took: %s minutes" % round(((time.time() - start_time) / 60), 2))
+        if features.find("nonascii") != -1:
+            # Remove non-ascii characters
+            print("Performing non-ascii removal")
+            start_time = time.time()
+            train_query_df['search_term'] = train_query_df['search_term'].map(lambda x: self.__nonascii_clean((x)))
+            print("Non-ascii clean on search_term took: %s minutes" % round(((time.time() - start_time) / 60), 2))
+            product_df['product_title'] = product_df['product_title'].map(lambda x: self.__nonascii_clean(str(x)))
+            print("Non-ascii clean on product_title took: %s minutes" % round(((time.time() - start_time) / 60), 2))
 
         # Run this to download the download the stopword list if you hit error
         # nltk.download()
 
-        # Stopwords removal
-        print("Performing stopwords removal")
-        start_time = time.time()
-        train_query_df['search_term'] = train_query_df['search_term'].map(lambda x: self.__stopword_removal((x)))
-        print("stopwords removal on search_term took: %s minutes" % round(((time.time() - start_time) / 60), 2))
-        product_df['product_title'] = product_df['product_title'].map(lambda x: self.__stopword_removal(str(x)))
-        print("stopwords removal on product_title took: %s minutes" % round(((time.time() - start_time) / 60), 2))
+        if features.find("stopwords") != -1:
+            # Stopwords removal
+            print("Performing stopwords removal")
+            start_time = time.time()
+            train_query_df['search_term'] = train_query_df['search_term'].map(lambda x: self.__stopword_removal((x)))
+            print("stopwords removal on search_term took: %s minutes" % round(((time.time() - start_time) / 60), 2))
+            product_df['product_title'] = product_df['product_title'].map(lambda x: self.__stopword_removal(str(x)))
+            print("stopwords removal on product_title took: %s minutes" % round(((time.time() - start_time) / 60), 2))
 
-        # # Stemming
-        print("Performing Stemming")
-        start_time = time.time()
-        train_query_df['search_term'] = train_query_df['search_term'].map(lambda x: self.__stemming((x)))
-        print("Stemming search_term took: %s minutes" % round(((time.time() - start_time) / 60), 2))
-        product_df['product_title'] = product_df['product_title'].map(lambda x: self.__stemming(str(x)))
-        print("Stemming product_title took: %s minutes" % round(((time.time() - start_time) / 60), 2))
-        product_df['product_brand'] = product_df['product_brand'].map(lambda x: self.__stemming(str(x)))
-        print("Stemming product_brand took: %s minutes" % round(((time.time() - start_time) / 60), 2))
-        product_df['product_description'] = product_df['product_description'].map(lambda x: self.__stemming(str(x)))
-        print("Stemming product_description took: %s minutes" % round(((time.time() - start_time) / 60), 2))
+        if features.find("stemming") != -1:
+            # # Stemming
+            print("Performing Stemming")
+            start_time = time.time()
+            train_query_df['search_term'] = train_query_df['search_term'].map(lambda x: self.__stemming((x)))
+            print("Stemming search_term took: %s minutes" % round(((time.time() - start_time) / 60), 2))
+            product_df['product_title'] = product_df['product_title'].map(lambda x: self.__stemming(str(x)))
+            print("Stemming product_title took: %s minutes" % round(((time.time() - start_time) / 60), 2))
+            product_df['product_brand'] = product_df['product_brand'].map(lambda x: self.__stemming(str(x)))
+            print("Stemming product_brand took: %s minutes" % round(((time.time() - start_time) / 60), 2))
+            product_df['product_description'] = product_df['product_description'].map(lambda x: self.__stemming(str(x)))
+            print("Stemming product_description took: %s minutes" % round(((time.time() - start_time) / 60), 2))
 
-        # TF-IDF
-        print("Performing TF-IDF")
-        tfidf = Feature_TFIDF()
-        train_query_df['tfidf_product_title'] = tfidf.getCosineSimilarity(train_query_df, 'search_term', product_df,
-                                                                          'product_title')
-        train_query_df['tfidf_product_brand'] = tfidf.getCosineSimilarity(train_query_df, 'search_term', product_df,
-                                                                          'product_brand')
-        train_query_df['tfidf_product_description'] = tfidf.getCosineSimilarity(train_query_df, 'search_term', product_df,
-                                                                          'product_description')
+        if features.find("tfidf") != -1:
+            # TF-IDF
+            print("Performing TF-IDF")
+            tfidf = Feature_TFIDF()
+            train_query_df['tfidf_product_title'] = tfidf.getCosineSimilarity(train_query_df, 'search_term', product_df,
+                                                                              'product_title')
+            train_query_df['tfidf_product_brand'] = tfidf.getCosineSimilarity(train_query_df, 'search_term', product_df,
+                                                                              'product_brand')
+            train_query_df['tfidf_product_description'] = tfidf.getCosineSimilarity(train_query_df, 'search_term', product_df,
+                                                                              'product_description')
 
-        # Doc2Vec
-        print("Performing Doc2Vec")
-        doc2vec = Feature_Doc2Vec()
-        train_query_df['doc2vec_product_title'] = doc2vec.getCosineSimilarity(train_query_df, 'search_term', product_df,
-                                                                          'product_title')
-        doc2vec = Feature_Doc2Vec()
-        train_query_df['doc2vec_product_brand'] = doc2vec.getCosineSimilarity(train_query_df, 'search_term', product_df,
-                                                                          'product_brand')
-        doc2vec = Feature_Doc2Vec()
-        train_query_df['doc2vec_product_description'] = doc2vec.getCosineSimilarity(train_query_df, 'search_term', product_df,
-                                                                          'product_description')
+        if features.find("doc2vec") != -1:
+            # Doc2Vec
+            print("Performing Doc2Vec")
+            doc2vec = Feature_Doc2Vec()
+            train_query_df['doc2vec_product_title'] = doc2vec.getCosineSimilarity(train_query_df, 'search_term', product_df,
+                                                                              'product_title')
+            doc2vec = Feature_Doc2Vec()
+            train_query_df['doc2vec_product_brand'] = doc2vec.getCosineSimilarity(train_query_df, 'search_term', product_df,
+                                                                              'product_brand')
+            doc2vec = Feature_Doc2Vec()
+            train_query_df['doc2vec_product_description'] = doc2vec.getCosineSimilarity(train_query_df, 'search_term', product_df,
+                                                                              'product_description')
 
-        # BM25
-        print("===========Performing BM25 computation....this may take a while")
-        print("Merging product_title and description")
-        print(list(product_df))
-        product_df['content']=product_df['product_title'].map(str) +" "+ \
-                              product_df['product_description'].map(str) + " " + \
-                              product_df['product_brand'].map(str)
-        product_df.head(1)
-        print("Compute BM25")
-        bm25 = Feature_BM25(product_df)
-        print("Remove merged column")
-        product_df=product_df.drop('content', axis=1)
-        #For every training query-document pair, generate bm25
-        print("Generate bm25 column")
-        train_query_df=bm25.computeBM25Column(trainset=train_query_df,colName='bm25')
-        print("train_query_df:",list(train_query_df))
-        print("train_query_df head:",train_query_df.head(1))
-        print("Saving to csv")
-        train_query_df.to_csv('../data.prune/train_query_with_bm25.csv')
-        print("===========Completed BM25 computation")
+        if features.find("bm25") != -1:
+            # BM25
+            print("===========Performing BM25 computation....this may take a while")
+            print("Merging product_title and description")
+            print(list(product_df))
+            product_df['content']=product_df['product_title'].map(str) +" "+ \
+                                  product_df['product_description'].map(str) + " " + \
+                                  product_df['product_brand'].map(str)
+            product_df.head(1)
+            print("Compute BM25")
+            bm25 = Feature_BM25(product_df)
+            print("Remove merged column")
+            product_df=product_df.drop('content', axis=1)
+            #For every training query-document pair, generate bm25
+            print("Generate bm25 column")
+            train_query_df=bm25.computeBM25Column(trainset=train_query_df,colName='bm25')
+            print("train_query_df:",list(train_query_df))
+            print("train_query_df head:",train_query_df.head(1))
+            print("Saving to csv")
+            train_query_df.to_csv('../data.prune/train_query_with_bm25.csv')
+            print("===========Completed BM25 computation")
 
-        # Document Length
-        print("Performing Document Length")
-        product_df['len_product_title'] = product_df['product_title'].map(lambda x: len(homedepotTokeniser(x)))
-        train_query_df = pd.merge(train_query_df, product_df[['product_uid', 'len_product_title']], how='left',
-                                  on='product_uid')
-        product_df['len_product_description'] = product_df['product_description'].map(lambda x: len(homedepotTokeniser(x)))
-        train_query_df = pd.merge(train_query_df, product_df[['product_uid', 'len_product_description']], how='left',
-                                  on='product_uid')
-        product_df['len_brand'] = product_df['product_brand'].map(lambda x: len(homedepotTokeniser(x)))
-        train_query_df = pd.merge(train_query_df, product_df[['product_uid', 'len_brand']], how='left',
-                                  on='product_uid')
-        train_query_df['len_search_term'] = train_query_df['search_term'].map(lambda x: len(homedepotTokeniser(x)))
+        if features.find("doclength") != -1:
+            # Document Length
+            print("Performing Document Length")
+            product_df['len_product_title'] = product_df['product_title'].map(lambda x: len(homedepotTokeniser(x)))
+            train_query_df = pd.merge(train_query_df, product_df[['product_uid', 'len_product_title']], how='left',
+                                      on='product_uid')
+            product_df['len_product_description'] = product_df['product_description'].map(lambda x: len(homedepotTokeniser(x)))
+            train_query_df = pd.merge(train_query_df, product_df[['product_uid', 'len_product_description']], how='left',
+                                      on='product_uid')
+            product_df['len_brand'] = product_df['product_brand'].map(lambda x: len(homedepotTokeniser(x)))
+            train_query_df = pd.merge(train_query_df, product_df[['product_uid', 'len_brand']], how='left',
+                                      on='product_uid')
+            train_query_df['len_search_term'] = train_query_df['search_term'].map(lambda x: len(homedepotTokeniser(x)))
 
 
         print(train_query_df.info())
@@ -215,7 +224,7 @@ if __name__ == "__main__":
 
     print("Starting Feature Engineering")
     feat = HomeDepotFeature()
-    all_df = feat.getFeature(train_df)
+    all_df = feat.getFeature(train_df,features="brand,spelling,nonascii,stopwords,stemming,tfidf,doc2vec,bm25,doclength")
 
     train_df = all_df.iloc[:train_df.shape[0]]
     test_df = all_df.iloc[train_df.shape[0]:]
