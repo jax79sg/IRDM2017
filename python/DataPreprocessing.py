@@ -95,10 +95,10 @@ class DataPreprocessing():
         print('newLabels:',self.newLabels)
 
         #Label replacement
-        print("Creating new column for training")
+        print("Creating new column for training: ",newColName)
         trainDF[newColName] = trainDF[trainLabelColumn].map(self.__replaceLabel)
         if (validationDF is not None):
-            print("Creating new column for validation")
+            print("Creating new column for validation: ",newColName)
             validationDF[newColName] = validationDF[validationLabelColumn].map(self.__replaceLabel)
         print("===========Transform labels completed")
 
