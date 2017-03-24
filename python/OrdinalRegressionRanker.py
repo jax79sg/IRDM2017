@@ -73,10 +73,26 @@ class OrdinalRegressionRanker(object):
         trainDF,validateDF=dp.transformLabels(trainDF=trainDF,validationDF=validateDF, newColName=self.yColDiscrete)
         print("New labels generated...")
 
-        self.xTrain=trainDF[self.xCol]
+        print("Remove non trainable features...")
+
+
+
+        self.xTrain=trainDF
+        # self.xTrain = trainDF[self.xCol]
         self.yTrain=trainDF[self.yColDiscrete]
-        self.xValidate=validateDF[self.xCol]
+        self.xValidate=validateDF
+        # self.xValidate = validateDF[self.xCol]
         self.yValidate=validateDF[self.yColDiscrete]
+
+        self.xTrain.drop('search_term', axis=1, inplace=True)
+        self.xTrain.drop('relevance', axis=1, inplace=True)
+        self.xTrain.drop('relevance_int', axis=1, inplace=True)
+        self.xTrain.drop('product_idx', axis=1, inplace=True)
+
+        self.xValidate.drop('search_term', axis=1, inplace=True)
+        self.xValidate.drop('relevance', axis=1, inplace=True)
+        self.xValidate.drop('relevance_int', axis=1, inplace=True)
+        self.xValidate.drop('product_idx', axis=1, inplace=True)
 
         print("self.xTrain:",self.xTrain.head(1))
         print("self.yTrain:", self.yTrain.head(1))
@@ -103,7 +119,8 @@ class OrdinalRegressionRanker(object):
         if(self.fittedModel is None):
             raise ModelNotTrainedException("Model not trained","Please make sure to run train(trainDF,validateDF)")
         else:
-            xTest=testDf[self.xCol]
+            xTest=testDf
+            # xTest = testDf[self.xCol]
             self.yPred=self.fittedModel.predict(xTest)
 
 
