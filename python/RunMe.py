@@ -6,9 +6,9 @@ from XGBoostRanker import XGBoostRanker
 from OrdinalRegressionRanker import OrdinalRegressionRanker
 from DataPreprocessing import DataPreprocessing
 
-def getFeature(train_query_df, product_df, attribute_df, test_query_df):
+def getFeature(train_query_df, product_df, attribute_df, test_query_df, features):
     print("####  Running: RunMe.getFeature() ####")
-    return HomeDepotFeature().getFeature(train_query_df, product_df, attribute_df, test_query_df)
+    return HomeDepotFeature().getFeature(train_query_df, product_df, attribute_df, test_query_df,features=features)
 
 def dumpFeature2CSV(dataframe, fileName):
     print("####  Running: RunMe.dumpFeature2CSV() ####")
@@ -48,8 +48,8 @@ if __name__ == "__main__":
     print("test_query_df:", list(test_query_df))
 
     print("Starting Feature Engineering")
-    all_df = getFeature(train_query_df, product_df, attribute_df, test_query_df)
+    all_df = getFeature(train_query_df, product_df, attribute_df, test_query_df,features="brand,spelling,nonascii,bm25")
 
     # Run personal models from this point onward
-    # runOrdinalRegressionRanker(train_df, test_df)
+    runOrdinalRegressionRanker(train_query_df, test_query_df)
     # runXGBoostRanker(train_query_df, test_query_df)
