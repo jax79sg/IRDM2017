@@ -1,26 +1,34 @@
 # IRDM2017
 Information Retreival and Data Mining
 
-**TODO for Feature Engineering:**
+
+**TODO for Data Processing:**
 + Stemming + lower case (Chun Siong: Done)
-+ TF-IDF (Chun Siong: Done)
 + Spelling correction (Chun Siong: Done)
-+ Document Length (Chun Siong: Done)
-+ BM25 on product title and description combined (Kah Siong: Done)
-+ Query expansion (Kah Siong: Reading up)
-+ Similarity measure
-    + Cosine Similarity (Chun Siong: Done)
 + Remove punctuation (Chun Siong: Done. There is a tokeniser based on RE under FeatureEngineering.py)
 + Remove Non-ASCII (Kah Siong: Done)
-+ Brand Column (Chun Siong: Done)
-+ Merge all attributes key value pair into a single text field (Min: WIP)
-+ LMIR.ABS (Min: Will read on LMIR in general)
-+ LMIR.DIR
-+ LMIR.JM
-+ Word2Vec (Chun Siong: Done)
 + Stopword removal (Min: WIP)
++ Merge all attributes key value pair into a single text field (Min: WIP)
+
+**TODO for Feature Engineering:**
+More ideas of features can be found here https://www.microsoft.com/en-us/research/project/mslr/
++ Query-independant (Document only)
+    + Document Length (Chun Siong: Done)
+    + Brand Column (Chun Siong: Done)
++ Query-dependant (Document and query)
+    + TF-IDF (Chun Siong: Done)
+    + BM25 on product title and description combined (Kah Siong: Done)
+    + LMIR.ABS (Min: Will read on LMIR in general)
+    + LMIR.DIR
+    + LMIR.JM
+    + LDA (Chun Siong: Reading)
++ Query-only
+    + Query expansion (Kah Siong: Reading up)
+
++ Similarity measure
+    + Cosine Similarity (Chun Siong: Done)
++ Word2Vec (Chun Siong: Done)
 + KL ? (What's this?) Kulback lieber, i've seen it mentioned in comparisons which include BM25, LMIR, KL https://www.microsoft.com/en-us/research/publication/relevance-ranking-using-kernels/
-+ LDA (Chun Siong: Reading)
 + Output all computed feature to Ranklib format
 
 
