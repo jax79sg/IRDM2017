@@ -23,18 +23,19 @@ More ideas of features can be found here https://www.microsoft.com/en-us/researc
     + LMIR.JM
     + LDA (Chun Siong: Reading)
 + Query-only
-    + Query expansion (Kah Siong: Reading up)
+    + Query expansion (Kah Siong: Done with Word2Vec Query Expansion)
 
 + Similarity measure
     + Cosine Similarity (Chun Siong: Done)
-+ Word2Vec (Chun Siong: Done)
++ Doc2Vec (Chun Siong: Done)
++ Word2Vec (Kah Siong: Done)
 + KL ? (What's this?) Kulback lieber, i've seen it mentioned in comparisons which include BM25, LMIR, KL https://www.microsoft.com/en-us/research/publication/relevance-ranking-using-kernels/
 + Output all computed feature to Ranklib format
 
 
 **TODO for Model Selection:**
 + Pointwise
-    + Ordinal Regression (Kah Siong: Training-Done, Prediction-Done, Evaluation-WIP) (MORD, and if MORD doesn't work then https://gist.github.com/agramfort/2071994)
+    + Ordinal Regression (!!! Emine emailed Linear Regression cannot use libraries....Kah Siong: Training-Done, Prediction-Done, Evaluation-WIP) (MORD, and if MORD doesn't work then https://gist.github.com/agramfort/2071994)
     + Support Vector Machine 
     + Boosted Regression
     + Perception <- perceptron? 
@@ -55,7 +56,7 @@ More ideas of features can be found here https://www.microsoft.com/en-us/researc
     + Match tensor - (Min: Reading on this https://arxiv.org/pdf/1701.07795.pdf)
 
 **TODO for Evaluation:**
-+ NDCG (Kah Siong: Done) Note: libRank has in-built implementation for java
++ NDCG (Kah Siong: Python Done) Note: libRank has in-built implementation for java
 + RMSE
 
 **Goal**
