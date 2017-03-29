@@ -6,6 +6,8 @@ class Utility():
     starttime=None
     def startTimeTrack(self):
         """
+        Changelog: 
+        - 29/03 KS First committed        
         This must be the first method to call before calling stopTimeTrack or checkpointTimeTrack
         Will start the recording of time.
         :return:
@@ -15,6 +17,8 @@ class Utility():
 
     def stopTimeTrack(self):
         """
+        Changelog: 
+        - 29/03 KS First committed        
         This is called in pair with startTimeTrack everytime.
         It will print time lapse after startTimeTrack
         :return:
@@ -29,6 +33,8 @@ class Utility():
 
     def checkpointTimeTrack(self):
         """
+        Changelog: 
+        - 29/03 KS First committed        
         This can be called consecutively for as many times as long as startTimeTrack has been first called.
         It will print the time lapse from last check point
         E.g.
