@@ -169,13 +169,14 @@ class DataPreprocessing():
         attribute_doc_df['product_uid'] = attribute_doc_df['product_uid'].astype(int)
         return attribute_doc_df
 
-# #Test for getAttributeDoc
+#Test for getAttributeDoc
 # if __name__ == "__main__":
 #     attribute_filename = '../data/attributes.csv'
-#     attribute_df = pd.read_csv(attribute_filename, delimiter=',', low_memory=False, encoding="ISO-8859-1")
+#     attribute_df = pd.read_csv(attribute_filename, delimiter=',', low_memory=False)#, encoding="ISO-8859-1")
 #     dp = DataPreprocessing()
 #     attribute_doc_df = dp.getAttributeDoc(attribute_df)
 #     print(len(attribute_doc_df))
 #     print(len(attribute_df))
 #     print(attribute_doc_df.head(10))
+#     print(attribute_doc_df.iloc[0][1])
 

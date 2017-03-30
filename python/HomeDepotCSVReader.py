@@ -88,8 +88,8 @@ class HomeDepotReader:
         '''
         train_query_df = pd.read_csv(train_filename, delimiter=',', low_memory=False, header=header, encoding="ISO-8859-1")
         test_query_df = pd.read_csv(test_filename, delimiter=',', low_memory=False, header=header, encoding="ISO-8859-1")
-        attribute_df = pd.read_csv(attribute_filename, delimiter=',', low_memory=False, header=header, encoding="ISO-8859-1")
-        description_df = pd.read_csv(description_filename, delimiter=',', low_memory=False, header=header, encoding="ISO-8859-1")
+        attribute_df = pd.read_csv(attribute_filename, delimiter=',', low_memory=False, header=header)# people don't seem to use this on attr and desc, encoding="ISO-8859-1")
+        description_df = pd.read_csv(description_filename, delimiter=',', low_memory=False, header=header)#, encoding="ISO-8859-1")
 
         all_df = pd.concat((train_query_df, test_query_df), axis=0, ignore_index=True)
 
