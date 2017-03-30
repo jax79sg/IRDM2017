@@ -136,6 +136,8 @@ class DataPreprocessing():
         """
         Produce concatenated attributes for a product in json format flattened/unnflattened.
         This can then be vectorised e.g using doc2vec.
+        :param attribute_df: attribute_df as read in using HomeDepotReader
+        :return: pd dataframe with 'product_uid','attr_json' columns where 'attr_json' is flattened json of all attributes
         """
         # skip nan row e.g Pandas(Index=1929, product_uid=nan, name=nan, value=nan)
         tmp_attribute_df = attribute_df.copy()
