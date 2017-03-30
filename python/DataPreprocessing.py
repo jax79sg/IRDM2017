@@ -8,6 +8,7 @@ class DataPreprocessing():
     oldLabels=None
     newLabels = None
     mergedLabelDF = None
+    attribute_doc_df = None
 
     def __init__(self):
         pass
@@ -130,3 +131,49 @@ class DataPreprocessing():
                 for word in words:
                     texts.append(word)
         return texts
+
+    def getAttributeDoc(self, attribute_df):
+        """
+        Produce concatenated attributes for a product in json format flattened/unnflattened.
+        This can then be vectorised e.g using doc2vec.
+        """
+        # skip nan row e.g Pandas(Index=1929, product_uid=nan, name=nan, value=nan)
+        tmp_attribute_df = attribute_df.copy()
+        tmp_attribute_df['product_uid'].replace('', np.nan,
+                                                inplace=True)  # replace any blanks with NaN so we can drop it next
+        tmp_attribute_df.dropna(subset=['product_uid'], inplace=True)  # drop null values
+
+        # TODO: should Bullet01 e.g be modified as it doesn't add value per se
+        new_rows_list = []
+        current_product_uid = None
+        for row in tmp_attribute_df.itertuples():  # itertuples over iterrows for speed as doesn't cast to pd.series
+            product_uid = row.product_uid
+            if product_uid != current_product_uid:
+                # new product,
+                # store prev json into df
+                if current_product_uid != None:
+                    new_rows_list.append(attr_dict)
+                # start new dict
+                current_product_uid = product_uid
+                attr_dict = {}
+                attr_dict['product_uid'] = product_uid
+                attr_dict['attr_json'] = {row.name: row.value}
+
+            else:
+                # existing product, continue prev dict
+                attr_dict['attr_json'].update({row.name: row.value})
+
+        attribute_doc_df = pd.DataFrame(new_rows_list, columns=['product_uid', 'attr_json'])
+        attribute_doc_df['product_uid'] = attribute_doc_df['product_uid'].astype(int)
+        return attribute_doc_df
+
+# #Test for getAttributeDoc
+# if __name__ == "__main__":
+#     attribute_filename = '../data/attributes.csv'
+#     attribute_df = pd.read_csv(attribute_filename, delimiter=',', low_memory=False, encoding="ISO-8859-1")
+#     dp = DataPreprocessing()
+#     attribute_doc_df = dp.getAttributeDoc(attribute_df)
+#     print(len(attribute_doc_df))
+#     print(len(attribute_df))
+#     print(attribute_doc_df.head(10))
+
