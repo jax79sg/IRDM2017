@@ -49,7 +49,7 @@ class Feature_Word2Vec():
         """
         self.utility.startTimeTrack()
         print("Initialise/Train Word2Vec model")
-        self.model = Word2Vec(sentences, size=100, window=5, min_count=5, workers=4, iter=100)
+        self.model = Word2Vec(sentences, size=100, window=5, min_count=5, workers=4, iter=5)
         self.utility.checkpointTimeTrack()
 
         print("Saving vectors to disk")
