@@ -1,5 +1,6 @@
 import Feature_Word2Vec
-
+import pandas as pd
+from UserException import InvalidDatasetException
 
 class Word2VecQueryExpansion():
     """
@@ -35,11 +36,46 @@ class Word2VecQueryExpansion():
 
                 word=w2vSimilarword[0]
                 similarityscore = w2vSimilarword[1]
-                if(similarityscore>=minSimilarityLevel):
+                if(similarityscore>=minSimilarityLevel and word!=''):
                     expandedQuery=expandedQuery+" "+word
 
         return expandedQuery
 
+
+    def getExpandedTerms(self,df):
+        """
+        Meant to be use in panda apply.
+        See below
+        :param df:
+        :return:
+        """
+        search_term = df['search_term'].split()
+        searchquery=""
+        for term in search_term:
+            searchquery=searchquery+" " + term
+
+        print(searchquery)
+        return self.getExpandedQuery(querywords=searchquery,maxNoOfAdditionalWords=1,minSimilarityLevel=0.7)
+
+
+    def computeExpandedQueryColumn(self,trainset, colName='expandedquery'):
+        """
+        Compute a new expandedquery column given a dataframe
+        Changelog
+        - 31/3 KS First commit
+        :param trainset: Training Dataframe, should contain  product_uid and search_term columns
+        :param colName: name of the new column
+        :return:
+        """
+        if(~isinstance(trainset,pd.DataFrame)):
+            if(trainset.shape[1]<2):
+                if ('search_term' not in list(trainset)):
+                    raise InvalidDatasetException("Invalid Dataframe for ExpandedQuery compute","Expecting A Pandas.Dataframe with columns 'search_term' ")
+
+        #Apply scoring function across each row of dataframe
+
+        trainset[colName]=trainset.apply(self.getExpandedTerms,axis=1)
+        return trainset
 
 class Doc2VecQueryExpansion():
     # TODO: To apply doc2vec.
