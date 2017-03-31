@@ -13,6 +13,7 @@ import Feature_Spelling
 import re
 from nltk.corpus import stopwords
 import nltk
+from AutomaticQueryExpansion import Word2VecQueryExpansion
 
 class HomeDepotFeature():
     def __init__(self):
@@ -20,7 +21,7 @@ class HomeDepotFeature():
         # self.stemmer = SnowballStemmer('english')
         self.stemmer = Stemmer.Stemmer('english')
 
-    def getFeature(self, train_query_df, product_df, attribute_df, test_query_df, features="brand,spelling,nonascii,stopwords,stemming,tfidf,doc2vec,bm25,doclength"):
+    def getFeature(self, train_query_df, product_df, attribute_df, test_query_df, features="brand,spelling,nonascii,stopwords,stemming,tfidf,doc2vec,bm25,doclength,Word2VecQueryExpansion"):
         ## Please feel free to add feature into this method.
         ## For testing, you may want to comment out some feature generation to save time
         ## as some takes a long time to run.
@@ -114,6 +115,29 @@ class HomeDepotFeature():
             print("Saving to csv")
             train_query_df.to_csv('../data.prune/train_query_with_bm25.csv')
             print("===========Completed BM25 computation")
+
+
+        if features.find("Word2VecQueryExpansion") != -1:
+            # BM25
+            print("===========Performing Word2VecQueryExpansion computation....this may take a super long time while")
+            # print("Merging product_title and description")
+            # print(list(product_df))
+            # product_df['content']=product_df['product_title'].map(str) +" "+ \
+            #                       product_df['product_description'].map(str) + " " + \
+            #                       product_df['product_brand'].map(str)
+            # product_df.head(1)
+            print("Compute Word2VecQueryExpansion")
+            w2cExpand = Word2VecQueryExpansion()
+            # print("Remove merged column")
+            # product_df=product_df.drop('content', axis=1)
+            #For every training query-document pair, generate bm25
+            print("Generate Word2VecQueryExpansion column")
+            train_query_df=w2cExpand.computeExpandedQueryColumn(trainset=train_query_df,colName='Word2VecQueryExpansion')
+            print("train_query_df:",list(train_query_df))
+            print("train_query_df head:",train_query_df.head(1))
+            print("Saving to csv")
+            train_query_df.to_csv('../data.prune/train_query_with_Word2VecQueryExpansion.csv')
+            print("===========Completed Word2VecQueryExpansion computation")
 
         if features.find("doclength") != -1:
             # Document Length
