@@ -146,6 +146,7 @@ class DataPreprocessing():
         tmp_attribute_df.dropna(subset=['product_uid'], inplace=True)  # drop null values
 
         # TODO: should Bullet01 e.g be modified as it doesn't add value per se
+        # TODO: could also only keep 'important' attributes
         new_rows_list = []
         current_product_uid = None
         for row in tmp_attribute_df.itertuples():  # itertuples over iterrows for speed as doesn't cast to pd.series
