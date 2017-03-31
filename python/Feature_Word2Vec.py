@@ -83,16 +83,29 @@ class Feature_Word2Vec():
         self.model.save(self.modelFilename)
         self.utility.checkpointTimeTrack()
 
-    def getSimilarWordVectors(self,word,noOfWordToReturn=5):
+    def getSimilarWordVectors(self,word,noOfWordToReturn=5, retrain=False):
         """
         Changelog: 
         - 29/03 KS First committed        
         Returns words and their vectors thats closest to the given word.
         :param words: A single word
         :param noOfWordToReturn: Number of closest words to return. First one is closest.
+        :param retrain: If encounter OOV, retrain the word2vec
         :return: 
         """
-        return self.model.most_similar(word,[],noOfWordToReturn)
+        result=[('',0)]
+        try:
+            result=self.model.most_similar(word, [], noOfWordToReturn)
+        except KeyError:
+            if(retrain):
+                print('Word not found, retraining...')
+                self.model.build_vocab([word])
+                self.model.train([word])
+                result = self.model.most_similar(word, [], noOfWordToReturn)
+                print(result)
+            else:
+                print(word," is not in word2vec vocab. Returning empty")
+        return result
 
     def convertDFIntoSentences(self,dataframe,columnName):
         """
