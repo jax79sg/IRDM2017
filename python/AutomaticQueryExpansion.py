@@ -12,6 +12,9 @@ class Word2VecQueryExpansion():
     Append these words to the original query and return as expanded query
     Note: Probably not suitable for classification based ranking models
     """
+    def __init__(self,modelFilename='model/word2vec.model'):
+        self.modelFilename=modelFilename
+
     def getExpandedQuery(self,querywords, maxNoOfAdditionalWords=1, minSimilarityLevel=0.7):
         """
         Changelog: 
@@ -23,7 +26,7 @@ class Word2VecQueryExpansion():
         :return: 
         """
         expandedQuery=""
-        w2v = Feature_Word2Vec.Feature_Word2Vec()
+        w2v = Feature_Word2Vec.Feature_Word2Vec(self.modelFilename)
         for queryword in querywords.split( ):
             w2vSimilarwords=w2v.getSimilarWordVectors(queryword, maxNoOfAdditionalWords)
             # print("w2vSimilarwords:",w2vSimilarwords)
