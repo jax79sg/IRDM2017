@@ -50,4 +50,4 @@ if __name__ == "__main__":
     w2vExpand=Word2VecQueryExpansion()
     query="switch"
     print("Expanding query: ")
-    print(w2vExpand.getExpandedQuery(query,2))
+    print(w2vExpand.getExpandedQuery(query,maxNoOfAdditionalWords=2,minSimilarityLevel=0.65))
