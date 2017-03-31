@@ -5,6 +5,7 @@ from HomeDepotCSVWriter import HomeDepotCSVWriter
 from XGBoostRanker import XGBoostRanker
 from OrdinalRegressionRanker import OrdinalRegressionRanker
 from DataPreprocessing import DataPreprocessing
+import Feature_Doc2Vec
 
 def getFeature(train_query_df, product_df, attribute_df, test_query_df, features):
     print("####  Running: RunMe.getFeature() ####")
@@ -48,8 +49,10 @@ if __name__ == "__main__":
     print("test_query_df:", list(test_query_df))
 
     print("Starting Feature Engineering")
-    all_df = getFeature(train_query_df, product_df, attribute_df, test_query_df,features="brand,spelling,nonascii,bm25")
+    all_df = getFeature(train_query_df, product_df, attribute_df, test_query_df,features="brand,spelling,nonascii,Word2VecQueryExpansion")
 
     # Run personal models from this point onward
-    runOrdinalRegressionRanker(train_query_df, test_query_df)
+    # runOrdinalRegressionRanker(train_query_df, test_query_df)
     # runXGBoostRanker(train_query_df, test_query_df)
+    doc = Feature_Doc2Vec()
+    doc.tr
