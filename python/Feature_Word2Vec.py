@@ -119,12 +119,17 @@ class Feature_Word2Vec():
         sentences=[]
         for row in dataframe[columnName]:
             #Removing commas - To remove situations of 'door' and 'door,' being similar
-            row.replace(',',' ')
+
             rowSentences=row.split('.')
             for rowSentence in rowSentences:
                 rowWords=rowSentence.split( )
-                sentences.append(rowWords)
-        # print(sentences)
+                # print("rowWords---:",rowWords)
+                strippedRowWords=[]
+                for rowWord in rowWords:
+                    strippedRowWords.append(rowWord.strip(','))
+
+                sentences.append(strippedRowWords)
+        print(sentences)
         return sentences
 
 if __name__ == "__main__":
