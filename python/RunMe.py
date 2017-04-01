@@ -54,5 +54,5 @@ if __name__ == "__main__":
     # Run personal models from this point onward
     # runOrdinalRegressionRanker(train_query_df, test_query_df)
     # runXGBoostRanker(train_query_df, test_query_df)
-    doc = Feature_Doc2Vec()
-    doc.tr
+    # doc = Feature_Doc2Vec()
+    # doc.tr
