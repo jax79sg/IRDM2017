@@ -58,7 +58,7 @@ class Word2VecQueryExpansion():
         for term in search_term:
             searchquery=searchquery+" " + term
 
-        print(searchquery)
+        # print(searchquery)
         return self.getExpandedQuery(querywords=searchquery,maxNoOfAdditionalWords=1,minSimilarityLevel=0.7)
 
 
