@@ -18,7 +18,7 @@ class Feature_BM25():
     colProductId='product_id'
     colContent='content'
 
-    def getBM25(self,df):
+    def getBM25(self,df, searchTermColname):
         """
         Meant to be use in panda apply.
         See below
@@ -26,25 +26,26 @@ class Feature_BM25():
         :return:
         """
         productid = df['product_uid']
-        search_term = df['search_term'].split()
+        search_term = df[searchTermColname].split()
         return self.score(search_term, productid)
 
-    def computeBM25Column(self,trainset, colName='bm25'):
+    def computeBM25Column(self,trainset, destColName='bm25', searchTermColname='search_term'):
         """
         Compute a new bm25 column given a dataframe
         Changelog
         - 15/3 KS First commit
+        - 1/4 KS Added support for other search terms
         :param trainset: Training Dataframe, should contain  product_uid and search_term columns
         :param colName: name of the new column
         :return:
         """
         if(~isinstance(trainset,pd.DataFrame)):
             if(trainset.shape[1]<2):
-                if ('product_uid' not in list(trainset) or 'search_term' not in list(trainset)):
-                    raise InvalidDatasetException("Invalid Dataframe for BM25 compute","Expecting A Pandas.Dataframe with columns 'product_uid' and 'search_term' ")
+                if ('product_uid' not in list(trainset) or searchTermColname not in list(trainset)):
+                    raise InvalidDatasetException("Invalid Dataframe for BM25 compute","Expecting A Pandas.Dataframe with columns 'product_uid' and ",searchTermColname)
 
         #Apply scoring function across each row of dataframe
-        trainset[colName]=trainset.apply(self.getBM25,axis=1)
+        trainset[destColName]=trainset.apply(self.getBM25,args=(searchTermColname,),axis=1)
         return trainset
 
 
