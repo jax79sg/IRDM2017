@@ -7,8 +7,8 @@ Information Retreival and Data Mining
 + Spelling correction (Chun Siong: Done)
 + Remove punctuation (Chun Siong: Done. There is a tokeniser based on RE under FeatureEngineering.py)
 + Remove Non-ASCII (Kah Siong: Done)
-+ Stopword removal (Min: WIP)
-+ Merge all attributes key value pair into a single text field (Min: WIP)
++ Stopword removal (Min: Done)
++ Merge all attributes key value pair into a single text field (Min: Done)
 
 **TODO for Feature Engineering:**
 More ideas of features can be found here https://www.microsoft.com/en-us/research/project/mslr/
@@ -18,7 +18,7 @@ More ideas of features can be found here https://www.microsoft.com/en-us/researc
 + Query-dependant (Document and query)
     + TF-IDF (Chun Siong: Done)
     + BM25 on product title and description combined (Kah Siong: Done)
-    + LMIR.ABS (Min: Will read on LMIR in general)
+    + LMIR.ABS (Min: WIP, Feature_LMIR.py implemented, but not incorporated into FeatureEngineering.py)
     + LMIR.DIR
     + LMIR.JM
     + LDA (Chun Siong: Reading)

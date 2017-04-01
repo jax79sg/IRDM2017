@@ -14,6 +14,9 @@ class Word2VecQueryExpansion():
     Note: Probably not suitable for classification based ranking models
     """
     w2v=None
+    def __init__(self,modelFilename='model/word2vec.model'):
+        self.modelFilename=modelFilename
+
     def getExpandedQuery(self,querywords, maxNoOfAdditionalWords=1, minSimilarityLevel=0.7):
         """
         Changelog: 
