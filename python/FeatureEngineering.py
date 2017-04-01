@@ -119,7 +119,7 @@ class HomeDepotFeature():
 
         if features.find("Word2VecQueryExpansion") != -1:
             # BM25
-            print("===========Performing Word2VecQueryExpansion computation....this may take a super long time while")
+            print("===========Performing Word2VecQueryExpansion computation....this may take a super long time")
             # print("Merging product_title and description")
             # print(list(product_df))
             # product_df['content']=product_df['product_title'].map(str) +" "+ \
