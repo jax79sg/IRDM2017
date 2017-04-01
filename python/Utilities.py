@@ -46,7 +46,11 @@ class Utility():
         """
         endtime = datetime.datetime.now()
         duration = endtime - self.starttime
-        result = "Time taken: ", duration.seconds, " secs"
+        result=""
+        if(duration.seconds>60):
+            result = "Time taken: ", duration.seconds/60, " mins"
+        else:
+            result = "Time taken: ", duration.seconds, " secs"
         self.starttime=endtime
         print(result)
         return result
