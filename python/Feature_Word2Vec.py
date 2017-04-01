@@ -102,9 +102,9 @@ class Feature_Word2Vec():
                 self.model.build_vocab([word])
                 self.model.train([word])
                 result = self.model.most_similar(word, [], noOfWordToReturn)
-                print(result)
-            else:
-                print(word," is not in word2vec vocab. Returning empty")
+                # print(result)
+            # else:
+            #     print("getSimilarWordVectors:",word," is not in word2vec vocab. Returning empty")
         return result
 
     def convertDFIntoSentences(self,dataframe,columnName):
@@ -119,17 +119,16 @@ class Feature_Word2Vec():
         sentences=[]
         for row in dataframe[columnName]:
             #Removing commas - To remove situations of 'door' and 'door,' being similar
-
             rowSentences=row.split('.')
             for rowSentence in rowSentences:
                 rowWords=rowSentence.split( )
                 # print("rowWords---:",rowWords)
                 strippedRowWords=[]
                 for rowWord in rowWords:
-                    strippedRowWords.append(rowWord.strip(','))
+                    strippedRowWords.append(rowWord.strip(',').lower())
 
                 sentences.append(strippedRowWords)
-        print(sentences)
+        # print(sentences)
         return sentences
 
 if __name__ == "__main__":
@@ -150,7 +149,27 @@ if __name__ == "__main__":
     print("test_query_df:", list(test_query_df))
 
     product_df['content'] = product_df['product_title'].map(str) + " " + \
-                            product_df['product_description'].map(str)
+                            product_df['product_description'].map(str) + " " + \
+                            product_df['product_brand'].map(str)
+
+    print("Adding training query for that product id into the content")
+    product_df = product_df.reset_index(drop=True)
+    counter = 0
+    for index, product in product_df.iterrows():
+        # print("product:", product)
+        productId = product['product_uid']
+        # print("productId:",productId)
+        df = train_query_df[train_query_df.product_uid == productId]
+        # print("df:",df)
+        searchterms = ""
+        for index, row in df.iterrows():
+            searchterm = row['search_term']
+            searchterms = searchterms + " " + searchterm
+
+        newString = product_df.iloc[counter]['content'] + " " + searchterms
+        product_df.set_value(counter, 'content', newString)
+
+        counter = counter + 1
 
     w2v=Feature_Word2Vec()
     sentences=w2v.convertDFIntoSentences(product_df,'content')
