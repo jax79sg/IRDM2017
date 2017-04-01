@@ -14,6 +14,8 @@ import re
 from nltk.corpus import stopwords
 import nltk
 from AutomaticQueryExpansion import Word2VecQueryExpansion
+import Feature_Word2Vec
+from Utilities import Utility
 
 class HomeDepotFeature():
     def __init__(self):
@@ -21,12 +23,12 @@ class HomeDepotFeature():
         # self.stemmer = SnowballStemmer('english')
         self.stemmer = Stemmer.Stemmer('english')
 
-    def getFeature(self, train_query_df, product_df, attribute_df, test_query_df, features="brand,spelling,nonascii,stopwords,stemming,tfidf,doc2vec,bm25,doclength,Word2VecQueryExpansion"):
+    def getFeature(self, train_query_df, product_df, attribute_df, test_query_df, features="brand,spelling,nonascii,stopwords,stemming,tfidf,doc2vec,word2vec,bm25,doclength,bm25expandedquery,Word2VecQueryExpansion"):
         ## Please feel free to add feature into this method.
         ## For testing, you may want to comment out some feature generation to save time
         ## as some takes a long time to run.
 
-
+        timetracker=Utility()
         if features.find("brand") != -1:
             # Create Brand Column
             product_df = self.__createBrandColumn(product_df, attribute_df)
@@ -94,32 +96,105 @@ class HomeDepotFeature():
             train_query_df['doc2vec_product_description'] = doc2vec.getCosineSimilarity(train_query_df, 'search_term', product_df,
                                                                               'product_description')
 
-        if features.find("bm25") != -1:
+
+        if features.find("word2vec") != -1:
             # BM25
-            print("===========Performing BM25 computation....this may take a while")
+            print("===========Performing word2vec computation....this may take a while")
+            timetracker.startTimeTrack()
             print("Merging product_title and description")
             print(list(product_df))
             product_df['content']=product_df['product_title'].map(str) +" "+ \
                                   product_df['product_description'].map(str) + " " + \
                                   product_df['product_brand'].map(str)
-            product_df.head(1)
+            timetracker.checkpointTimeTrack()
+            print("Adding training query for that product id into the content")
+            product_df=product_df.reset_index(drop=True)
+            counter=0
+            for index,product in product_df.iterrows():
+                # print("product:", product)
+                productId=product['product_uid']
+                # print("productId:",productId)
+                df=train_query_df[train_query_df.product_uid==productId]
+                # print("df:",df)
+                searchterms=""
+                for index,row in df.iterrows():
+                    searchterm=row['search_term']
+                    searchterms=searchterms+" "+searchterm
+
+                newString=product_df.iloc[counter]['content']+" "+searchterms
+                product_df.set_value(counter,'content',newString)
+
+                counter=counter+1
+
+            timetracker.checkpointTimeTrack()
+
+            w2v = Feature_Word2Vec.Feature_Word2Vec()
+            print("Convert DF into sentences for word2vec processing")
+            sentences = w2v.convertDFIntoSentences(product_df, 'content')
+            timetracker.checkpointTimeTrack()
+            print("Training word2vec")
+            w2v.trainModel(sentences)
+            timetracker.checkpointTimeTrack()
+            print("Validating...this should give some results like sofa")
+            print(w2v.getVectorFromWord('stool'))
+            print(w2v.getSimilarWordVectors('stool', 5))
+            print("===========Completed word2vec computation")
+
+
+        if features.find("bm25") != -1:
+            # BM25
+            print("===========Performing BM25 computation....this may take a while")
+            timetracker.startTimeTrack()
+            print("Merging product_title and description")
+            print(list(product_df))
+            product_df['content']=product_df['product_title'].map(str) +" "+ \
+                                  product_df['product_description'].map(str) + " " + \
+                                  product_df['product_brand'].map(str)
+            timetracker.checkpointTimeTrack()
+
+            print("Adding training query for that product id into the content")
+            product_df=product_df.reset_index(drop=True)
+            counter=0
+            for index,product in product_df.iterrows():
+                # print("product:", product)
+                productId=product['product_uid']
+                # print("productId:",productId)
+                df=train_query_df[train_query_df.product_uid==productId]
+                # print("df:",df)
+                searchterms=""
+                for index,row in df.iterrows():
+                    searchterm=row['search_term']
+                    searchterms=searchterms+" "+searchterm
+
+                newString=product_df.iloc[counter]['content']+" "+searchterms
+                product_df.set_value(counter,'content',newString)
+
+                counter=counter+1
+
+            timetracker.checkpointTimeTrack()
+
             print("Compute BM25")
             bm25 = Feature_BM25(product_df)
+            timetracker.checkpointTimeTrack()
             print("Remove merged column")
             product_df=product_df.drop('content', axis=1)
             #For every training query-document pair, generate bm25
             print("Generate bm25 column")
-            train_query_df=bm25.computeBM25Column(trainset=train_query_df,colName='bm25')
+            train_query_df=bm25.computeBM25Column(trainset=train_query_df,destColName='bm25', searchTermColname='search_term')
+            timetracker.checkpointTimeTrack()
             print("train_query_df:",list(train_query_df))
             print("train_query_df head:",train_query_df.head(1))
             print("Saving to csv")
-            train_query_df.to_csv('../data.prune/train_query_with_bm25.csv')
+            train_query_df.to_csv('../data.prune/train_query_with_bm25_search_term.csv')
+            timetracker.checkpointTimeTrack()
             print("===========Completed BM25 computation")
 
 
+        ##WARNING: This has to be before bm25expandedquery function call
         if features.find("Word2VecQueryExpansion") != -1:
             # BM25
             print("===========Performing Word2VecQueryExpansion computation....this may take a super long time")
+            timetracker.startTimeTrack()
             # print("Merging product_title and description")
             # print(list(product_df))
             # product_df['content']=product_df['product_title'].map(str) +" "+ \
@@ -128,16 +203,76 @@ class HomeDepotFeature():
             # product_df.head(1)
             print("Compute Word2VecQueryExpansion")
             w2cExpand = Word2VecQueryExpansion()
+            timetracker.checkpointTimeTrack()
             # print("Remove merged column")
             # product_df=product_df.drop('content', axis=1)
             #For every training query-document pair, generate bm25
             print("Generate Word2VecQueryExpansion column")
             train_query_df=w2cExpand.computeExpandedQueryColumn(trainset=train_query_df,colName='Word2VecQueryExpansion')
+            timetracker.checkpointTimeTrack()
             print("train_query_df:",list(train_query_df))
             print("train_query_df head:",train_query_df.head(1))
             print("Saving to csv")
             train_query_df.to_csv('../data.prune/train_query_with_Word2VecQueryExpansion.csv')
+            timetracker.checkpointTimeTrack()
             print("===========Completed Word2VecQueryExpansion computation")
+
+
+
+        if features.find("bm25expandedquery") != -1:
+            if features.find("Word2VecQueryExpansion") != -1:
+                # bm25expandedquery
+                print("===========Performing BM25expanded computation....this may take a while")
+                timetracker.startTimeTrack()
+                print("Merging product_title and description")
+                print(list(product_df))
+                product_df['content']=product_df['product_title'].map(str) +" "+ \
+                                      product_df['product_description'].map(str) + " " + \
+                                      product_df['product_brand'].map(str)
+                product_df.head(1)
+                timetracker.checkpointTimeTrack()
+
+                print("Adding training query for that product id into the content")
+                product_df = product_df.reset_index(drop=True)
+                counter = 0
+                for index, product in product_df.iterrows():
+                    # print("product:", product)
+                    productId = product['product_uid']
+                    # print("productId:",productId)
+                    df = train_query_df[train_query_df.product_uid == productId]
+                    # print("df:",df)
+                    searchterms = ""
+                    for index, row in df.iterrows():
+                        searchterm = row['search_term']
+                        searchterms = searchterms + " " + searchterm
+
+                    newString = product_df.iloc[counter]['content'] + " " + searchterms
+                    product_df.set_value(counter, 'content', newString)
+
+                    counter = counter + 1
+
+                timetracker.checkpointTimeTrack()
+
+
+                print("Compute BM25")
+                bm25 = Feature_BM25(product_df)
+                timetracker.checkpointTimeTrack()
+                print("Remove merged column")
+                product_df=product_df.drop('content', axis=1)
+                #For every training query-document pair, generate bm25
+                print("Generate bm25 column")
+                train_query_df=bm25.computeBM25Column(trainset=train_query_df,destColName='bm25expandedquery', searchTermColname='Word2VecQueryExpansion')
+                timetracker.checkpointTimeTrack()
+                print("train_query_df:",list(train_query_df))
+                print("train_query_df head:",train_query_df.head(1))
+                print("Saving to csv")
+                train_query_df.to_csv('../data.prune/train_query_with_bm25_Word2VecQueryExpansion.csv')
+                timetracker.checkpointTimeTrack()
+                print("===========Completed BM25expanded computation")
+            else:
+                print("ERROR: Cannot proceed with bm25expandedquery. Word2VecQueryExpansion is not enabled. It is a prerequisite of bm25expandedquery.")
+
+
 
         if features.find("doclength") != -1:
             # Document Length
