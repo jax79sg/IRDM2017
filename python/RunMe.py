@@ -49,7 +49,7 @@ if __name__ == "__main__":
     print("test_query_df:", list(test_query_df))
 
     print("Starting Feature Engineering")
-    all_df = getFeature(train_query_df, product_df, attribute_df, test_query_df,features="brand,spelling,nonascii,Word2VecQueryExpansion")
+    all_df = getFeature(train_query_df, product_df, attribute_df, test_query_df,features="brand,spelling,nonascii,word2vec,bm25,bm25expandedquery,Word2VecQueryExpansion")
 
     # Run personal models from this point onward
     # runOrdinalRegressionRanker(train_query_df, test_query_df)
