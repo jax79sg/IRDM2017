@@ -13,6 +13,7 @@ class Word2VecQueryExpansion():
     Append these words to the original query and return as expanded query
     Note: Probably not suitable for classification based ranking models
     """
+    w2v=None
     def getExpandedQuery(self,querywords, maxNoOfAdditionalWords=1, minSimilarityLevel=0.7):
         """
         Changelog: 
@@ -24,9 +25,9 @@ class Word2VecQueryExpansion():
         :return: 
         """
         expandedQuery=""
-        w2v = Feature_Word2Vec.Feature_Word2Vec()
+        # w2v = Feature_Word2Vec.Feature_Word2Vec()
         for queryword in querywords.split( ):
-            w2vSimilarwords=w2v.getSimilarWordVectors(queryword, maxNoOfAdditionalWords)
+            w2vSimilarwords=self.w2v.getSimilarWordVectors(queryword, maxNoOfAdditionalWords)
             # print("w2vSimilarwords:",w2vSimilarwords)
             expandedQuery = expandedQuery + " " + queryword
             for w2vSimilarword in w2vSimilarwords:
@@ -73,7 +74,7 @@ class Word2VecQueryExpansion():
                     raise InvalidDatasetException("Invalid Dataframe for ExpandedQuery compute","Expecting A Pandas.Dataframe with columns 'search_term' ")
 
         #Apply scoring function across each row of dataframe
-
+        self.w2v = Feature_Word2Vec.Feature_Word2Vec()
         trainset[colName]=trainset.apply(self.getExpandedTerms,axis=1)
         return trainset
 
