@@ -13,7 +13,7 @@ class Feature_Doc2Vec:
 
     def __trainModel(self, source_df, source_columnName, target_df, target_columnName):
         # Use PV-DM w/concatenation to preserve word ordering information, hierarchical sampling = 1 Reduce complexity from V sq
-        model = Doc2Vec(dm=1, size=10, window=5, min_count=1, workers=4, alpha=0.025, dm_concat=1,
+        model = Doc2Vec(dm=1, size=10, window=5, min_count=1, workers=-1, alpha=0.025, dm_concat=1,
                         min_alpha=0.015, hs=1, negative=0)  # use fixed learning rate
 
         target_df['content'] = target_df['product_title'].map(str) + " " + \
@@ -39,19 +39,19 @@ class Feature_Doc2Vec:
             model.train(docs)
 
         # Save the model to disk
-        model.save('models/doc2vec_trainedvocab.d2v')
+        model.save('model/doc2vec_trainedvocab.d2v')
 
 
     def getCosineSimilarity(self, source_df, source_columnName, target_df, target_columnName):
         start_time = time.time()
         try:
             # model = Doc2Vec.load('./models/doc2vec_' + target_columnName + '.d2v')
-            model = Doc2Vec.load('models/doc2vec_trainedvocab.d2v')
+            model = Doc2Vec.load('model/doc2vec_trainedvocab.d2v')
         except FileNotFoundError:
             print("File not found. Do training. Takes 20min")
             self.__trainModel(source_df, source_columnName, target_df, target_columnName)
 
-            model = Doc2Vec.load('models/doc2vec_trainedvocab.d2v')
+            model = Doc2Vec.load('model/doc2vec_trainedvocab.d2v')
 
         # print("[Feature_Doc2Vec] Loaded model: " + './doc2vec_' + target_columnName + '.d2v')
         print("Feature_Doc2Vec load model took: %s minutes" % round(((time.time() - start_time) / 60), 2))
