@@ -40,8 +40,17 @@ class HomeDepotFeature():
 
         if features.find("spelling") != -1:
             # Perform spell correction on search_term
-            print("Performing spell correction on search term")
-            train_query_df['search_term'] = train_query_df['search_term'].map(lambda x: self.__spell_correction(x))
+            print("Performing spell correction")
+            spell_dict = Feature_Spelling.getSpellingCorrectionDict()
+            # print(self.__spell_correction('lifeswivel', spell_dict))
+            train_query_df['search_term'] = train_query_df['search_term'].map(
+                lambda x: self.__spell_correction(x, spell_dict))
+            product_df['product_description'] = product_df['product_description'].map(
+                lambda x: self.__spell_correction(x, spell_dict))
+            product_df['product_title'] = product_df['product_title'].map(
+                lambda x: self.__spell_correction(x, spell_dict))
+            product_df['attr_json'] = product_df['attr_json'].map(
+                lambda x: self.__spell_correction(str(x), spell_dict))
 
         if features.find("nonascii") != -1:
             # Remove non-ascii characters
@@ -407,8 +416,8 @@ class HomeDepotFeature():
         # attribute_doc_df
         return product_df.join(attribute_doc_df.set_index('product_uid'), on='product_uid')
 
-    def __spell_correction(self, s):
-        return " ".join([Feature_Spelling.spell_dict[word] if word in Feature_Spelling.spell_dict else word
+    def __spell_correction(self, s, spell_dict):
+        return " ".join([spell_dict[word] if word in spell_dict else word
                          for word in homedepotTokeniser(s)])
 
     def __stemming(self, s):
