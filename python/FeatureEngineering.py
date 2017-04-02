@@ -23,7 +23,7 @@ class HomeDepotFeature():
         # self.stemmer = SnowballStemmer('english')
         self.stemmer = Stemmer.Stemmer('english')
 
-    def getFeature(self, train_query_df, product_df, attribute_df, test_query_df, features="brand,spelling,nonascii,stopwords,stemming,tfidf,doc2vec,word2vec,bm25,doclength,bm25expandedquery,Word2VecQueryExpansion"):
+    def getFeature(self, train_query_df, product_df, attribute_df, test_query_df, features="brand,attribute,spelling,nonascii,stopwords,stemming,tfidf,tfidf_expandedquery,doc2vec,doc2vec_expandedquery,word2vec,bm25,doclength,bm25expandedquery,Word2VecQueryExpansion"):
         ## Please feel free to add feature into this method.
         ## For testing, you may want to comment out some feature generation to save time
         ## as some takes a long time to run.
@@ -32,6 +32,11 @@ class HomeDepotFeature():
         if features.find("brand") != -1:
             # Create Brand Column
             product_df = self.__createBrandColumn(product_df, attribute_df)
+
+        if features.find("attribute") != -1:
+            # Create Attribute column as a JSON string
+            # Column name is attr_json
+            product_df = self.__createAttributeColumn(product_df, attribute_df)
 
         if features.find("spelling") != -1:
             # Perform spell correction on search_term
@@ -58,6 +63,7 @@ class HomeDepotFeature():
             print("stopwords removal on search_term took: %s minutes" % round(((time.time() - start_time) / 60), 2))
             product_df['product_title'] = product_df['product_title'].map(lambda x: self.__stopword_removal(str(x)))
             print("stopwords removal on product_title took: %s minutes" % round(((time.time() - start_time) / 60), 2))
+            # TODO Should we remove stopword from description and attribute?
 
         if features.find("stemming") != -1:
             # # Stemming
@@ -71,6 +77,79 @@ class HomeDepotFeature():
             print("Stemming product_brand took: %s minutes" % round(((time.time() - start_time) / 60), 2))
             product_df['product_description'] = product_df['product_description'].map(lambda x: self.__stemming(str(x)))
             print("Stemming product_description took: %s minutes" % round(((time.time() - start_time) / 60), 2))
+            product_df['attr_json'] = product_df['attr_json'].map(lambda x: self.__stemming(str(x)))
+            print("Stemming attr_json took: %s minutes" % round(((time.time() - start_time) / 60), 2))
+
+        if features.find("word2vec") != -1:
+            # Word2Vec
+            print("===========Performing word2vec computation....this may take a while")
+            timetracker.startTimeTrack()
+            print("Merging product_title and description")
+            print(list(product_df))
+            product_df['content'] = product_df['product_title'].map(str) + " " + \
+                                    product_df['product_description'].map(str) + " " + \
+                                    product_df['product_brand'].map(str)
+            timetracker.checkpointTimeTrack()
+            print("Adding training query for that product id into the content")
+            product_df = product_df.reset_index(drop=True)
+            counter = 0
+            for index, product in product_df.iterrows():
+                # print("product:", product)
+                productId = product['product_uid']
+                # print("productId:",productId)
+                df = train_query_df[train_query_df.product_uid == productId]
+                # print("df:",df)
+                searchterms = ""
+                for index, row in df.iterrows():
+                    searchterm = row['search_term']
+                    searchterms = searchterms + " " + searchterm
+
+                newString = product_df.iloc[counter]['content'] + " " + searchterms
+                product_df.set_value(counter, 'content', newString)
+
+                counter = counter + 1
+
+            timetracker.checkpointTimeTrack()
+
+            w2v = Feature_Word2Vec.Feature_Word2Vec()
+            print("Convert DF into sentences for word2vec processing")
+            sentences = w2v.convertDFIntoSentences(product_df, 'content')
+            timetracker.checkpointTimeTrack()
+            print("Training word2vec")
+            w2v.trainModel(sentences)
+            timetracker.checkpointTimeTrack()
+            # print("Validating...this should give some results like sofa")
+            # print(w2v.getVectorFromWord('stool'))
+            # print(w2v.getSimilarWordVectors('stool', 5))
+            print("===========Completed word2vec computation")
+
+        ##WARNING: This has to be before bm25expandedquery function call
+        if features.find("Word2VecQueryExpansion") != -1:
+            # BM25
+            print("===========Performing Word2VecQueryExpansion computation....this may take a super long time")
+            timetracker.startTimeTrack()
+            # print("Merging product_title and description")
+            # print(list(product_df))
+            # product_df['content']=product_df['product_title'].map(str) +" "+ \
+            #                       product_df['product_description'].map(str) + " " + \
+            #                       product_df['product_brand'].map(str)
+            # product_df.head(1)
+            print("Compute Word2VecQueryExpansion")
+            w2cExpand = Word2VecQueryExpansion()
+            timetracker.checkpointTimeTrack()
+            # print("Remove merged column")
+            # product_df=product_df.drop('content', axis=1)
+            # For every training query-document pair, generate bm25
+            print("Generate Word2VecQueryExpansion column")
+            train_query_df = w2cExpand.computeExpandedQueryColumn(trainset=train_query_df,
+                                                                  colName='Word2VecQueryExpansion')
+            timetracker.checkpointTimeTrack()
+            print("train_query_df:", list(train_query_df))
+            print("train_query_df head:", train_query_df.head(1))
+            print("Saving to csv")
+            train_query_df.to_csv('../data.prune/train_query_with_Word2VecQueryExpansion.csv')
+            timetracker.checkpointTimeTrack()
+            print("===========Completed Word2VecQueryExpansion computation")
 
         if features.find("tfidf") != -1:
             # TF-IDF
@@ -82,6 +161,22 @@ class HomeDepotFeature():
                                                                               'product_brand')
             train_query_df['tfidf_product_description'] = tfidf.getCosineSimilarity(train_query_df, 'search_term', product_df,
                                                                               'product_description')
+            train_query_df['tfidf_attr_json'] = tfidf.getCosineSimilarity(train_query_df, 'search_term',
+                                                                                    product_df,
+                                                                                    'attr_json')
+        if features.find("tfidf_expandedquery") != -1:
+            # TF-IDF on expanded query
+            print("Performing TF-IDF with expanded query")
+            tfidf = Feature_TFIDF()
+            train_query_df['tfidf_expanded_product_title'] = tfidf.getCosineSimilarity(train_query_df, 'Word2VecQueryExpansion', product_df,
+                                                                              'product_title')
+            train_query_df['tfidf_expanded_product_brand'] = tfidf.getCosineSimilarity(train_query_df, 'Word2VecQueryExpansion', product_df,
+                                                                              'product_brand')
+            train_query_df['tfidf_expanded_product_description'] = tfidf.getCosineSimilarity(train_query_df, 'Word2VecQueryExpansion', product_df,
+                                                                              'product_description')
+            train_query_df['tfidf_expanded_attr_json'] = tfidf.getCosineSimilarity(train_query_df, 'Word2VecQueryExpansion',
+                                                                                    product_df,
+                                                                                    'attr_json')
 
         if features.find("doc2vec") != -1:
             # Doc2Vec
@@ -95,51 +190,34 @@ class HomeDepotFeature():
             doc2vec = Feature_Doc2Vec()
             train_query_df['doc2vec_product_description'] = doc2vec.getCosineSimilarity(train_query_df, 'search_term', product_df,
                                                                               'product_description')
+            doc2vec = Feature_Doc2Vec()
+            train_query_df['doc2vec_attr_json'] = doc2vec.getCosineSimilarity(train_query_df, 'search_term',
+                                                                                        product_df,
+                                                                                        'attr_json')
 
-
-        if features.find("word2vec") != -1:
-            # BM25
-            print("===========Performing word2vec computation....this may take a while")
-            timetracker.startTimeTrack()
-            print("Merging product_title and description")
-            print(list(product_df))
-            product_df['content']=product_df['product_title'].map(str) +" "+ \
-                                  product_df['product_description'].map(str) + " " + \
-                                  product_df['product_brand'].map(str)
-            timetracker.checkpointTimeTrack()
-            print("Adding training query for that product id into the content")
-            product_df=product_df.reset_index(drop=True)
-            counter=0
-            for index,product in product_df.iterrows():
-                # print("product:", product)
-                productId=product['product_uid']
-                # print("productId:",productId)
-                df=train_query_df[train_query_df.product_uid==productId]
-                # print("df:",df)
-                searchterms=""
-                for index,row in df.iterrows():
-                    searchterm=row['search_term']
-                    searchterms=searchterms+" "+searchterm
-
-                newString=product_df.iloc[counter]['content']+" "+searchterms
-                product_df.set_value(counter,'content',newString)
-
-                counter=counter+1
-
-            timetracker.checkpointTimeTrack()
-
-            w2v = Feature_Word2Vec.Feature_Word2Vec()
-            print("Convert DF into sentences for word2vec processing")
-            sentences = w2v.convertDFIntoSentences(product_df, 'content')
-            timetracker.checkpointTimeTrack()
-            print("Training word2vec")
-            w2v.trainModel(sentences)
-            timetracker.checkpointTimeTrack()
-            print("Validating...this should give some results like sofa")
-            print(w2v.getVectorFromWord('stool'))
-            print(w2v.getSimilarWordVectors('stool', 5))
-            print("===========Completed word2vec computation")
-
+        if features.find("doc2vec_expandedquery") != -1:
+            # Doc2Vec
+            print("Performing Doc2Vec with expanded query")
+            doc2vec = Feature_Doc2Vec()
+            train_query_df['doc2vec_expanded_product_title'] = doc2vec.getCosineSimilarity(train_query_df,
+                                                                                  'Word2VecQueryExpansion',
+                                                                                  product_df,
+                                                                                  'product_title')
+            doc2vec = Feature_Doc2Vec()
+            train_query_df['doc2vec_expanded_product_brand'] = doc2vec.getCosineSimilarity(train_query_df,
+                                                                                  'Word2VecQueryExpansion',
+                                                                                  product_df,
+                                                                                  'product_brand')
+            doc2vec = Feature_Doc2Vec()
+            train_query_df['doc2vec_expanded_product_description'] = doc2vec.getCosineSimilarity(train_query_df,
+                                                                                        'Word2VecQueryExpansion',
+                                                                                        product_df,
+                                                                                        'product_description')
+            doc2vec = Feature_Doc2Vec()
+            train_query_df['doc2vec_expanded_attr_json'] = doc2vec.getCosineSimilarity(train_query_df,
+                                                                              'Word2VecQueryExpansion',
+                                                                              product_df,
+                                                                              'attr_json')
 
         if features.find("bm25") != -1:
             # BM25
@@ -189,36 +267,6 @@ class HomeDepotFeature():
             timetracker.checkpointTimeTrack()
             print("===========Completed BM25 computation")
 
-
-        ##WARNING: This has to be before bm25expandedquery function call
-        if features.find("Word2VecQueryExpansion") != -1:
-            # BM25
-            print("===========Performing Word2VecQueryExpansion computation....this may take a super long time")
-            timetracker.startTimeTrack()
-            # print("Merging product_title and description")
-            # print(list(product_df))
-            # product_df['content']=product_df['product_title'].map(str) +" "+ \
-            #                       product_df['product_description'].map(str) + " " + \
-            #                       product_df['product_brand'].map(str)
-            # product_df.head(1)
-            print("Compute Word2VecQueryExpansion")
-            w2cExpand = Word2VecQueryExpansion()
-            timetracker.checkpointTimeTrack()
-            # print("Remove merged column")
-            # product_df=product_df.drop('content', axis=1)
-            #For every training query-document pair, generate bm25
-            print("Generate Word2VecQueryExpansion column")
-            train_query_df=w2cExpand.computeExpandedQueryColumn(trainset=train_query_df,colName='Word2VecQueryExpansion')
-            timetracker.checkpointTimeTrack()
-            print("train_query_df:",list(train_query_df))
-            print("train_query_df head:",train_query_df.head(1))
-            print("Saving to csv")
-            train_query_df.to_csv('../data.prune/train_query_with_Word2VecQueryExpansion.csv')
-            timetracker.checkpointTimeTrack()
-            print("===========Completed Word2VecQueryExpansion computation")
-
-
-
         if features.find("bm25expandedquery") != -1:
             if features.find("Word2VecQueryExpansion") != -1:
                 # bm25expandedquery
@@ -243,6 +291,7 @@ class HomeDepotFeature():
                     # print("df:",df)
                     searchterms = ""
                     for index, row in df.iterrows():
+                        #todo should this be Word2VecQueryExpansion or search_term?
                         searchterm = row['search_term']
                         searchterms = searchterms + " " + searchterm
 
@@ -351,6 +400,12 @@ class HomeDepotFeature():
         # print("No. of product without brand: ", product_df.product_brand.isnull().sum())
         product_df.product_brand.replace(np.NaN, 'unknown_brand_value', inplace=True)
         return product_df
+
+    def __createAttributeColumn(self, product_df, attribute_df):
+        dp = DataPreprocessing()
+        attribute_doc_df = dp.getAttributeDoc(attribute_df)
+        # attribute_doc_df
+        return product_df.join(attribute_doc_df.set_index('product_uid'), on='product_uid')
 
     def __spell_correction(self, s):
         return " ".join([Feature_Spelling.spell_dict[word] if word in Feature_Spelling.spell_dict else word

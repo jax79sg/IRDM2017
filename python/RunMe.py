@@ -49,7 +49,14 @@ if __name__ == "__main__":
     print("test_query_df:", list(test_query_df))
 
     print("Starting Feature Engineering")
-    all_df = getFeature(train_query_df, product_df, attribute_df, test_query_df,features="brand,spelling,nonascii,word2vec,bm25,bm25expandedquery,Word2VecQueryExpansion")
+    # all_df = getFeature(train_query_df, product_df, attribute_df, test_query_df,
+    #                     features="brand,spelling,nonascii,word2vec,bm25,bm25expandedquery,Word2VecQueryExpansion")
+    all_df = getFeature(train_query_df, product_df, attribute_df, test_query_df,
+                        features="brand,attribute,spelling,nonascii,stopwords,stemming,tfidf,tfidf_expandedquery,doc2vec,doc2vec_expandedquery,word2vec,bm25,doclength,bm25expandedquery,Word2VecQueryExpansion")
+
+    # Write all feature to a CSV. Next time can just read from here
+    writer = HomeDepotCSVWriter()
+    writer.dumpCSV(all_df, "../data/features.csv")
 
     # Run personal models from this point onward
     # runOrdinalRegressionRanker(train_query_df, test_query_df)
