@@ -9,6 +9,8 @@ Information Retreival and Data Mining
 + Remove Non-ASCII (Kah Siong: Done)
 + Stopword removal (Min: Done)
 + Merge all attributes key value pair into a single text field (Min: Done)
++ Brand Column (Chun Siong: Done)
++ Color and material Column (Chun Siong: WIP)
 
 **TODO for Feature Engineering:**
 More ideas of features can be found here https://www.microsoft.com/en-us/research/project/mslr/
@@ -21,16 +23,20 @@ More ideas of features can be found here https://www.microsoft.com/en-us/researc
     + LMIR.ABS (Min: WIP, Feature_LMIR.py implemented, but not incorporated into FeatureEngineering.py)
     + LMIR.DIR
     + LMIR.JM
-    + LDA (Chun Siong: Reading)
+    + LDA
 + Query-only
     + Query expansion (Kah Siong: Done with Word2Vec Query Expansion)
 
 + Similarity measure
     + Cosine Similarity (Chun Siong: Done)
 + Doc2Vec (Chun Siong: Done)
++ Document, search term, title length (Chun Siong: Done)
++ Binary indicator if color/material in search term is also in product (Chun Siong: WIP)
++ Binary indicator if brand in search term is also product brand (Chun Siong: WIP)
 + Word2Vec (Kah Siong: Done)
 + KL ? (What's this?) Kulback lieber, i've seen it mentioned in comparisons which include BM25, LMIR, KL https://www.microsoft.com/en-us/research/publication/relevance-ranking-using-kernels/
 + Output all computed feature to Ranklib format
+
 
 
 **TODO for Model Selection:**
