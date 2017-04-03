@@ -12,34 +12,46 @@ import time
 class Feature_Doc2Vec:
 
     def __trainModel(self, source_df, source_columnName, target_df, target_columnName):
-        # Use PV-DM w/concatenation to preserve word ordering information, hierarchical sampling = 1 Reduce complexity from V sq
-        model = Doc2Vec(dm=1, size=10, window=5, min_count=1, workers=-1, alpha=0.025, dm_concat=1,
-                        min_alpha=0.015, hs=1, negative=0)  # use fixed learning rate
-
         target_df['content'] = target_df['product_title'].map(str) + " " + \
-                               target_df['product_description'].map(str) + " " + \
-                               target_df['product_brand'].map(str)
+                               target_df['product_description'].map(str) #+ " " + \
+                               # target_df['product_brand'].map(str)
 
         # print(target_df['content'].head(3))
         # Prepare the documents in gensim format
         docs = []
         for index, row in target_df.iterrows():
             # docs.append(TaggedDocument(FeatureEngineering.homedepotTokeniser(row.product_title), ['id_' + str(row.product_uid)]))
+            # print(FeatureEngineering.homedepotTokeniser(row['content']))
             docs.append(TaggedDocument(FeatureEngineering.homedepotTokeniser(row['content']),
                                        ['id_' + str(row.product_uid)]))
 
+        # print(docs[:2])
         target_df = target_df.drop('content', axis=1)
+
+        # Use PV-DM w/concatenation to preserve word ordering information, hierarchical sampling = 1 Reduce complexity from V sq
+        # model = Doc2Vec(dm=0, size=100, window=10, min_count=1, workers=-1, alpha=0.01, dm_concat=0, dm_mean=0,
+        #                 min_alpha=0.0005, hs=1, negative=0, iter=20)
+        model = Doc2Vec(size=50, min_count=10, window=10, iter=500, workers=-1, alpha=0.1, min_alpha=0.0001, dm_concat=0, dm=1)
+
         # Build the vocab using gensim format
         model.build_vocab(docs)
 
+        model.train(docs, total_examples=model.corpus_count)
+
         # Start training with random shuffle in every epoch
         EPOCH = 20
-        for epoch in range(EPOCH):
-            shuffle(docs)
-            model.train(docs)
+        # for epoch in range(EPOCH):
+        #     # shuffle(docs)
+        #     # model.train(docs)
+        #     model.train(docs, total_examples=model.corpus_count)
+
+        print("wood: ", model.most_similar('wood'))
+        print("stool: ", model.most_similar('stool'))
 
         # Save the model to disk
         model.save('model/doc2vec_trainedvocab.d2v')
+
+        return model
 
 
     def getCosineSimilarity(self, source_df, source_columnName, target_df, target_columnName):
@@ -49,12 +61,17 @@ class Feature_Doc2Vec:
             model = Doc2Vec.load('model/doc2vec_trainedvocab.d2v')
         except FileNotFoundError:
             print("File not found. Do training. Takes 20min")
-            self.__trainModel(source_df, source_columnName, target_df, target_columnName)
+            model = self.__trainModel(source_df, source_columnName, target_df, target_columnName)
 
-            model = Doc2Vec.load('model/doc2vec_trainedvocab.d2v')
+            # model = Doc2Vec.load('model/doc2vec_trainedvocab.d2v')
 
         # print("[Feature_Doc2Vec] Loaded model: " + './doc2vec_' + target_columnName + '.d2v')
         print("Feature_Doc2Vec load model took: %s minutes" % round(((time.time() - start_time) / 60), 2))
+
+        print("stool: ", model.docvecs.most_similar([model['stool']]))
+        print("wood: ", model.docvecs.most_similar([model['wood']]))
+        print("wood: ", model.most_similar('wood'))
+        print("stool: ", model.most_similar('stool'))
 
         # tmp = source_df.search_term.map(lambda x: model.infer_vector(x,
         #                         alpha=0.025, min_alpha=0.025, steps=20))
@@ -64,7 +81,7 @@ class Feature_Doc2Vec:
 
         target_vectors = [np.array(model.infer_vector(
             FeatureEngineering.homedepotTokeniser(str(target_df[target_columnName].iloc[row].values[0])),
-            alpha=0.025, min_alpha=0.01, steps=20))
+            alpha=0.025, min_alpha=0.01, steps=40))
                           for _, row in source_df.product_idx.iteritems()]
         print("Feature_Doc2Vec target_vectors took: %s minutes" % round(((time.time() - start_time) / 60), 2))
 

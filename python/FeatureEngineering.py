@@ -127,14 +127,14 @@ class HomeDepotFeature():
             print("Training word2vec")
             w2v.trainModel(sentences)
             timetracker.checkpointTimeTrack()
-            # print("Validating...this should give some results like sofa")
-            # print(w2v.getVectorFromWord('stool'))
-            # print(w2v.getSimilarWordVectors('stool', 5))
+            print("Validating...this should give some results like sofa")
+            print(w2v.getVectorFromWord('stool'))
+            print(w2v.getSimilarWordVectors('stool', 5))
             print("===========Completed word2vec computation")
 
         ##WARNING: This has to be before bm25expandedquery function call
         if features.find("Word2VecQueryExpansion") != -1:
-            # BM25
+            # Word2VecQueryExpansion
             print("===========Performing Word2VecQueryExpansion computation....this may take a super long time")
             timetracker.startTimeTrack()
             # print("Merging product_title and description")
@@ -417,7 +417,7 @@ class HomeDepotFeature():
         return product_df.join(attribute_doc_df.set_index('product_uid'), on='product_uid')
 
     def __spell_correction(self, s, spell_dict):
-        return " ".join([spell_dict[word] if word in spell_dict else word
+        return " ".join([spell_dict[word.lower()] if word.lower() in spell_dict else word.lower()
                          for word in homedepotTokeniser(s)])
 
     def __stemming(self, s):
