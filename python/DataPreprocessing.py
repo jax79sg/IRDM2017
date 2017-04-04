@@ -22,7 +22,7 @@ class DataPreprocessing():
         self.oldToNewlabelMapping = defaultdict(float)
         try:
             print("Loading LabelRemap.txt")
-            f = open('model/LabelRemap.txt', 'r')
+            f = open('data/LabelRemap.txt', 'r')
             for line in f:
                 oldNnew=line.split(',')
                 self.oldToNewlabelMapping[float(oldNnew[0])]=float(oldNnew[1])
@@ -38,8 +38,8 @@ class DataPreprocessing():
         for newrank in oneDnumpyFloat:
             oldrank.append(self.newToOldlabelMapping[newrank])
 
-        print("newrank:",np.array(oneDnumpyFloat))
-        print("oldrank:", np.array(oldrank))
+        # print("newrank:",np.array(oneDnumpyFloat))
+        # print("oldrank:", np.array(oldrank))
         return np.array(oldrank)
 
     def generateValidationSet(self,trainset, test_size=0.2):
@@ -125,7 +125,7 @@ class DataPreprocessing():
         print('newLabels:',self.newLabels)
 
         #Save the mapping of the relabelling
-        f = open('model/LabelRemap.txt', 'w')
+        f = open('data/LabelRemap.txt', 'w')
         i=0
         while i<self.newLabels.size:
             s=str(self.oldLabels[i])+","+str(self.newLabels[i])+"\n"
