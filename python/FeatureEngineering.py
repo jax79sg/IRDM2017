@@ -6,6 +6,7 @@ from Feature_TFIDF import Feature_TFIDF
 from Feature_Doc2Vec import Feature_Doc2Vec
 from Feature_BM25 import Feature_BM25
 from Feature_ColorMaterial import Feature_ColorMaterial
+from Feature_WordMoverDistance import Feature_WordMoverDistance
 import time
 from HomeDepotCSVReader import HomeDepotReader
 from DataPreprocessing import DataPreprocessing
@@ -24,7 +25,8 @@ class HomeDepotFeature():
         # self.stemmer = SnowballStemmer('english')
         self.stemmer = Stemmer.Stemmer('english')
 
-    def getFeature(self, train_query_df, product_df, attribute_df, test_query_df, features="brand,attribute,spelling,nonascii,stopwords,stemming,tfidf,tfidf_expandedquery,doc2vec,doc2vec_expandedquery,word2vec,bm25,doclength,bm25expandedquery,Word2VecQueryExpansion"):
+    def getFeature(self, train_query_df, product_df, attribute_df, test_query_df,
+                   features="brand,attribute,spelling,nonascii,stopwords,colorExist,brandExist,wmdistance,stemming,word2vec,Word2VecQueryExpansion,tfidf,tfidf_expandedquery,doc2vec,doc2vec_expandedquery,bm25,bm25expandedquery,doclength"):
         ## Please feel free to add feature into this method.
         ## For testing, you may want to comment out some feature generation to save time
         ## as some takes a long time to run.
@@ -73,7 +75,10 @@ class HomeDepotFeature():
             print("stopwords removal on search_term took: %s minutes" % round(((time.time() - start_time) / 60), 2))
             product_df['product_title'] = product_df['product_title'].map(lambda x: self.__stopword_removal(str(x)))
             print("stopwords removal on product_title took: %s minutes" % round(((time.time() - start_time) / 60), 2))
-            # TODO Should we remove stopword from description and attribute?
+            product_df['product_description'] = product_df['product_description'].map(lambda x: self.__stopword_removal(str(x)))
+            print("stopwords removal on product_description took: %s minutes" % round(((time.time() - start_time) / 60), 2))
+            product_df['attr_json'] = product_df['attr_jason'].map(lambda x: self.__stopword_removal(str(x)))
+            print("stopwords removal on attr_jason took: %s minutes" % round(((time.time() - start_time) / 60), 2))
 
         if features.find("colorExist") != -1:
             # Check if color in search_term exist in product_description column
@@ -90,6 +95,7 @@ class HomeDepotFeature():
 
             # Clean up unused column
             train_query_df.pop('color')
+            print("Color and material check took: %s minutes" % round(((time.time() - start_time) / 60), 2))
 
         if features.find("brandExist") != -1:
             # Check if brand in search term exist product_brand column
@@ -98,6 +104,25 @@ class HomeDepotFeature():
 
             train_query_df['brand_exist'] = self.__brandExist(train_query_df, product_df)
             # train_query_df['brand_exist'] = train_query_df['search_term'].map(lambda x: 1 if len(x)>0 else 0)
+            print("Brand check took: %s minutes" % round(((time.time() - start_time) / 60), 2))
+
+        if features.find('wmdistance') != -1:
+            print("Performing Word Mover Distance")
+            start_time = time.time()
+
+            wm = Feature_WordMoverDistance()
+            train_query_df['wm_product_description'] = wm.getDistance(train_query_df, 'search_term',
+                                                                      product_df, 'product_description')
+            print("WMDistance for product_description took: %s minutes" % round(((time.time() - start_time) / 60), 2))
+            train_query_df['wm_product_title'] = wm.getDistance(train_query_df, 'search_term',
+                                                                      product_df, 'product_title')
+            print("WMDistance for product_title took: %s minutes" % round(((time.time() - start_time) / 60), 2))
+            train_query_df['wm_product_brand'] = wm.getDistance(train_query_df, 'search_term',
+                                                                      product_df, 'product_brand')
+            print("WMDistance for product_brand took: %s minutes" % round(((time.time() - start_time) / 60), 2))
+            train_query_df['wm_attr_json'] = wm.getDistance(train_query_df, 'search_term',
+                                                                      product_df, 'attr_json')
+            print("WMDistance for attr_json took: %s minutes" % round(((time.time() - start_time) / 60), 2))
 
         if features.find("stemming") != -1:
             # # Stemming
@@ -325,7 +350,6 @@ class HomeDepotFeature():
                     # print("df:",df)
                     searchterms = ""
                     for index, row in df.iterrows():
-                        #todo should this be Word2VecQueryExpansion or search_term?
                         searchterm = row['search_term']
                         searchterms = searchterms + " " + searchterm
 
@@ -372,7 +396,7 @@ class HomeDepotFeature():
             train_query_df['len_search_term'] = train_query_df['search_term'].map(lambda x: len(homedepotTokeniser(x)))
 
 
-        print(train_query_df.info())
+        print("train_query_df final column:\n", train_query_df.info())
 
         return train_query_df
 
