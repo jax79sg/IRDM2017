@@ -8,5 +8,5 @@ class HomeDepotCSVWriter:
         # http://www.cs.cornell.edu/People/tj/svm_light/svm_rank.html
         raise NotImplemented
 
-    def dumpCSV(self, df, filename, header=True):
-        pd.DataFrame(df).to_csv(filename, index=False, header=header)
+    def dumpCSV(self, df, filename, header=True, encoding=''):
+        pd.DataFrame(df).to_csv(filename, index=False, header=header,encoding=encoding)

@@ -2,6 +2,7 @@ from UserException import InvalidDatasetException
 import numpy as np
 from sklearn.model_selection import train_test_split
 import pandas as pd
+from HomeDepotCSVWriter import HomeDepotCSVWriter
 
 class DataPreprocessing():
 
@@ -170,6 +171,24 @@ class DataPreprocessing():
         attribute_doc_df['product_uid'] = attribute_doc_df['product_uid'].astype(int)
         return attribute_doc_df
 
+    def getGoldTestSet(self, test_df, soln_df, testsetoption='Private',savepath=''):
+        """
+        Return Test set with gold labels for calculating RMSE scores in line with kaggle competition leaderboard
+        https://www.kaggle.com/c/home-depot-product-search-relevance/leaderboard
+        :param test_df: test df
+        :param soln_df: corresponding gold labels
+        :param testset: choose test set to filter on, valid options are 'Private','Public','Ignored'
+        :param save result in same format as train set to path provided #TODO: the formatting is screwed even with the original encoding passed in when written back to file.
+        :return: test_df_gold test_df with gold labels
+        """
+
+        test_df_gold = test_df.join(soln_df[soln_df['Usage'] == testsetoption][['id','relevance']].set_index('id'), on='id',how='inner')
+        if savepath != '':
+            print("Saving df to {}".format(savepath))
+            HomeDepotCSVWriter().dumpCSV(test_df_gold,savepath,encoding="ISO-8859-1")
+
+        return test_df_gold
+
 #Test for getAttributeDoc
 # if __name__ == "__main__":
 #     attribute_filename = '../data/attributes.csv'
@@ -181,3 +200,16 @@ class DataPreprocessing():
 #     print(attribute_doc_df.head(10))
 #     print(attribute_doc_df.iloc[0][1])
 
+#Test for getGoldTestSet
+if __name__ == "__main__":
+    test_filename = '../data/test.csv'
+    soln_filename = '../data/solution.csv'
+    test_df = pd.read_csv(test_filename, delimiter=',', low_memory=False, encoding="ISO-8859-1")
+    soln_df = pd.read_csv(soln_filename, delimiter=',', low_memory=False, encoding="ISO-8859-1")
+    dp = DataPreprocessing()
+    test_private_df = dp.getGoldTestSet(test_df, soln_df, testsetoption='Private')#,savepath='../data/test_private_gold.csv')
+    test_public_df = dp.getGoldTestSet(test_df, soln_df, testsetoption='Public')# savepath='../data/test_public_gold.csv')
+    print(len(test_private_df))
+    print(len(test_public_df))
+    print(test_private_df.head(10))
+    print(test_private_df.iloc[0][1])
