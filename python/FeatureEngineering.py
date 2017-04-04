@@ -5,6 +5,7 @@ import Stemmer
 from Feature_TFIDF import Feature_TFIDF
 from Feature_Doc2Vec import Feature_Doc2Vec
 from Feature_BM25 import Feature_BM25
+from Feature_ColorMaterial import Feature_ColorMaterial
 import time
 from HomeDepotCSVReader import HomeDepotReader
 from DataPreprocessing import DataPreprocessing
@@ -73,6 +74,30 @@ class HomeDepotFeature():
             product_df['product_title'] = product_df['product_title'].map(lambda x: self.__stopword_removal(str(x)))
             print("stopwords removal on product_title took: %s minutes" % round(((time.time() - start_time) / 60), 2))
             # TODO Should we remove stopword from description and attribute?
+
+        if features.find("colorExist") != -1:
+            # Check if color in search_term exist in product_description column
+            print("Performing color and material check")
+            start_time = time.time()
+            color = Feature_ColorMaterial()
+            train_query_df['color'] = color.checkColorMaterialExists(train_query_df, product_df)
+            train_query_df['color_exist'] = train_query_df['color'].map(lambda x: 1 if len(x)>0 else 0)
+            # Save some memory. Change it to uint8
+            train_query_df.color_exist = train_query_df.color_exist.astype(np.uint8)
+
+            if features.find("color_onehot") != -1:
+                train_query_df = self.__onehot_color(train_query_df)
+
+            # Clean up unused column
+            train_query_df.pop('color')
+
+        if features.find("brandExist") != -1:
+            # Check if brand in search term exist product_brand column
+            print("Performing brand check")
+            start_time = time.time()
+
+            train_query_df['brand_exist'] = self.__brandExist(train_query_df, product_df)
+            # train_query_df['brand_exist'] = train_query_df['search_term'].map(lambda x: 1 if len(x)>0 else 0)
 
         if features.find("stemming") != -1:
             # # Stemming
@@ -429,6 +454,34 @@ class HomeDepotFeature():
 
     def __stopword_removal(self, s):
         return " ".join([word for word in homedepotTokeniser(s) if not word in stopwords.words('english')])
+
+    def __onehot_color(self, train_query_df):
+        # Get color in one-hot fashion
+        train_query_df = pd.concat(
+            [train_query_df,
+             train_query_df.color.astype(str).str.strip('{}').str.get_dummies(', ').astype(np.uint8)], axis=1)
+        updatedName = {}
+        for i in list(train_query_df):
+            if i[0] == "'":
+                updatedName[i] = "color1hot_" + i.strip("''")
+
+        train_query_df.rename(columns=updatedName, inplace=True)
+        train_query_df.pop('set()')
+
+        return train_query_df
+
+    def __brandExist(self, train_query_df, product_df):
+        all = []
+        for index, row in train_query_df.iterrows():
+            product_brand = product_df['product_brand'].iloc[row.product_idx].values[0]
+
+            if product_brand.lower() in row['search_term'].lower():
+                all.append(1)
+                # print(str(row['search_term']) + " ====== " + str(product_brand))
+            else:
+                all.append(0)
+
+        return all
 
 tokeniser = re.compile("(?:[A-Za-z]{1,2}\.)+|[\w\']+|\?\!")
 def homedepotTokeniser(string):
