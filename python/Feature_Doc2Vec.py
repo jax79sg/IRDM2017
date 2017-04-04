@@ -60,7 +60,7 @@ class Feature_Doc2Vec:
             # model = Doc2Vec.load('./models/doc2vec_' + target_columnName + '.d2v')
             model = Doc2Vec.load('model/doc2vec_trainedvocab.d2v')
         except FileNotFoundError:
-            print("File not found. Do training. Takes 20min")
+            print("File not found. Do training. Takes > 20min")
             model = self.__trainModel(source_df, source_columnName, target_df, target_columnName)
 
             # model = Doc2Vec.load('model/doc2vec_trainedvocab.d2v')
@@ -68,23 +68,33 @@ class Feature_Doc2Vec:
         # print("[Feature_Doc2Vec] Loaded model: " + './doc2vec_' + target_columnName + '.d2v')
         print("Feature_Doc2Vec load model took: %s minutes" % round(((time.time() - start_time) / 60), 2))
 
-        print("stool: ", model.docvecs.most_similar([model['stool']]))
-        print("wood: ", model.docvecs.most_similar([model['wood']]))
-        print("wood: ", model.most_similar('wood'))
-        print("stool: ", model.most_similar('stool'))
+        # print("stool: ", model.docvecs.most_similar([model['stool']]))
+        # print("wood: ", model.docvecs.most_similar([model['wood']]))
+        # print("wood: ", model.most_similar('wood'))
+        # print("stool: ", model.most_similar('stool'))
+        # print(source_df.info())
 
-        # tmp = source_df.search_term.map(lambda x: model.infer_vector(x,
-        #                         alpha=0.025, min_alpha=0.025, steps=20))
-        search_vectors = [np.array(model.infer_vector(FeatureEngineering.homedepotTokeniser(row), alpha=0.025, min_alpha=0.01, steps=20))
-                          for _, row in source_df[source_columnName].iteritems()]
+        if str('doc2vec_' + source_columnName + '_vector') in source_df.columns:
+            # print("reuse: " + 'doc2vec_' + source_columnName + '_vector')
+            search_vectors = source_df['doc2vec_' + source_columnName + '_vector'].tolist()
+        else:
+            search_vectors = [np.array(model.infer_vector(FeatureEngineering.homedepotTokeniser(row), alpha=0.025, min_alpha=0.01, steps=20))
+                              for _, row in source_df[source_columnName].iteritems()]
+            source_df['doc2vec_' + source_columnName + '_vector'] = search_vectors
         print("Feature_Doc2Vec search_vectors took: %s minutes" % round(((time.time() - start_time) / 60), 2))
 
-        target_vectors = [np.array(model.infer_vector(
-            FeatureEngineering.homedepotTokeniser(str(target_df[target_columnName].iloc[row].values[0])),
-            alpha=0.025, min_alpha=0.01, steps=40))
-                          for _, row in source_df.product_idx.iteritems()]
+        if str('doc2vec_' + target_columnName + '_vector') in source_df.columns:
+            # print("reuse: " + 'doc2vec_' + target_columnName + '_vector')
+            target_vectors = source_df['doc2vec_' + target_columnName + '_vector'].tolist()
+        else:
+            target_vectors = [np.array(model.infer_vector(
+                FeatureEngineering.homedepotTokeniser(str(target_df[target_columnName].iloc[row].values[0])),
+                alpha=0.025, min_alpha=0.01, steps=40))
+                              for _, row in source_df.product_idx.iteritems()]
+            source_df['doc2vec_' + target_columnName + '_vector'] = target_vectors
         print("Feature_Doc2Vec target_vectors took: %s minutes" % round(((time.time() - start_time) / 60), 2))
 
+        # print(source_df['doc2vec_' + source_columnName + '_vector'].head(10))
         # print("sourcedf: ", source_df[source_columnName])
         # print("targetdf: ", target_df[target_columnName])
 
