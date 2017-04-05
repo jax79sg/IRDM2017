@@ -77,7 +77,7 @@ class HomeDepotFeature():
             print("stopwords removal on product_title took: %s minutes" % round(((time.time() - start_time) / 60), 2))
             product_df['product_description'] = product_df['product_description'].map(lambda x: self.__stopword_removal(str(x)))
             print("stopwords removal on product_description took: %s minutes" % round(((time.time() - start_time) / 60), 2))
-            product_df['attr_json'] = product_df['attr_jason'].map(lambda x: self.__stopword_removal(str(x)))
+            product_df['attr_json'] = product_df['attr_json'].map(lambda x: self.__stopword_removal(str(x)))
             print("stopwords removal on attr_jason took: %s minutes" % round(((time.time() - start_time) / 60), 2))
 
         if features.find("colorExist") != -1:
