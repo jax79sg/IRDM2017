@@ -3,6 +3,8 @@ from HomeDepotCSVReader import HomeDepotReader
 import pandas as pd
 import numpy as np
 
+# Color list adapted from
+# https://kaggle2.blob.core.windows.net/forum-message-attachments/108037/3713/most_common_colors.txt
 COLOR_LIST = (
 "concrete",
 "white",

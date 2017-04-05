@@ -1,6 +1,8 @@
 from HomeDepotCSVReader import HomeDepotReader
 from FeatureEngineering import HomeDepotFeature
+from DataPreprocessing import DataPreprocessing
 import pandas as pd
+import numpy as np
 # import xgboost as xgb
 from xgboost import *
 from sklearn.grid_search import GridSearchCV
@@ -150,7 +152,24 @@ class XGBoostRanker():
         for i in range(30):
             print("Gold: %.2f  Pred: %.2f" %(y_train[i], y_pred[i]))
 
-        print("RMSE: ", rmse(y_train, y_pred))
+        print("Train RMSE: ", rmse(y_train, y_pred))
+
+    def test_Model(self, test_df):
+        y_test = test_df[self.y_parameter]
+        x_test = test_df[self.x_parameter]
+
+        y_test = [y/3 for y in y_test]
+
+        RMSE = make_scorer(rmse, greater_is_better=False)
+
+        y_pred = self._model.predict(x_test)
+        y_pred = [y*3 for y in y_pred]
+        y_test = [y*3 for y in y_test]
+
+        for i in range(30):
+            print("Gold: %.2f  Pred: %.2f" %(y_test[i], y_pred[i]))
+
+        print("Test RMSE: ", rmse(y_test, y_pred))
 
 
     def gridSearch(self, trainDF):
@@ -197,7 +216,6 @@ class XGBoostRanker():
         print(model.best_score_)
 
 
-
 def rmse(y_gold, y_pred):
     return mean_squared_error(y_gold, y_pred) ** 0.5
 
@@ -208,9 +226,32 @@ if __name__ == "__main__":
     # feature_df = reader.getBasicDataFrame("../data/features_Doc2Vec.csv")
     # feature_df = reader.getBasicDataFrame("../data/features_Doc2Vec_retrain.csv")
 
+    feature_train_df = feature_df[:74067]
+    feature_test_df = feature_df[74067:]
+
+    # feature_test_df['relevance'] = np.zeros(166693)
+    # feature_test_df['relevance_int'] = np.zeros(166693)
+    feature_test_df.pop('relevance')
+    print(feature_test_df.info())
+
+    soln_filename = '../data/solution.csv'
+    soln_df = pd.read_csv(soln_filename, delimiter=',', low_memory=False, encoding="ISO-8859-1")
+    print(soln_df.info())
+    dp = DataPreprocessing()
+    # df_a.merge(df_b, on='mukey', how='left')
+    test_private_df = dp.getGoldTestSet(feature_test_df, soln_df,
+                                        testsetoption='Private')  # ,savepath='../data/test_private_gold.csv')
+    test_public_df = dp.getGoldTestSet(feature_test_df, soln_df,
+                                       testsetoption='Public')  # savepath='../data/test_public_gold.csv')
+
+    print(feature_train_df)
+
     print("####  Running: XGBoostRanker.runXGBoostRanker() ####")
     xgb = XGBoostRanker()
     # xgb.train(feature_df)
-    xgb.train_Regressor(feature_df)
+    xgb.train_Regressor(feature_train_df)
     # xgb.gridSearch(feature_df)
+
+    xgb.test_Model(test_public_df)
+    xgb.test_Model(test_private_df)
 
