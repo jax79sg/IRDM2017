@@ -11,7 +11,7 @@ class HomeDepotReader:
         :param header: Index of header
         :return: A dataframe
         '''
-        return pd.read_csv(filename, delimiter=',', low_memory=False, header=header)
+        return pd.read_csv(filename, delimiter=',', low_memory=True, header=header)
 
     def getMergedDataFrame(self, train_filename, test_filename, attribute_filename, description_filename, header=0):
         '''
@@ -106,8 +106,9 @@ class HomeDepotReader:
         dp = DataPreprocessing.DataPreprocessing()
         train_query_df = dp.transformLabels(trainDF=train_query_df,newColName='relevance_int')
 
-        # Add a index column in train to reference to product
+        # Add a index column in train and test to reference to product
         train_query_df['product_idx'] = [product_df[product_df['product_uid'] == uid].index for uid in train_query_df.product_uid]
+        test_query_df['product_idx'] = [product_df[product_df['product_uid'] == uid].index for uid in test_query_df.product_uid]
 
         # print("all: ", len(all_df.product_uid))
         # print("all unique: ", len(all_df.product_uid.unique()))
