@@ -91,17 +91,17 @@ class DataPreprocessing():
 
 
         if(trainDF is not None and validationDF is not None):
-            print("trainDF:", list(trainDF))
-            print("trainDF:", trainDF.head(1))
-            print("validationDF:", list(validationDF))
-            print("validationDF:", validationDF.head(1))
+            # print("trainDF:", list(trainDF))
+            # print("trainDF:", trainDF.head(1))
+            # print("validationDF:", list(validationDF))
+            # print("validationDF:", validationDF.head(1))
 
             #merge train and validation dataframe
             trainLabelDF=pd.DataFrame(trainDF[trainLabelColumn])
-            print("Extracted trainLabelDF:",list(trainLabelDF),"\n",type(trainLabelDF),trainLabelDF.shape,trainLabelDF.head(1))
+            # print("Extracted trainLabelDF:",list(trainLabelDF),"\n",type(trainLabelDF),trainLabelDF.shape,trainLabelDF.head(1))
             trainLabelDF.columns=[trainLabelColumn]
             validationLabelDF = pd.DataFrame(validationDF[validationLabelColumn])
-            print("Extracted validationLabelDF:", list(validationLabelDF), "\n", type(validationLabelDF),validationLabelDF.shape, validationLabelDF.head(1))
+            # print("Extracted validationLabelDF:", list(validationLabelDF), "\n", type(validationLabelDF),validationLabelDF.shape, validationLabelDF.head(1))
             validationLabelDF.columns = [trainLabelColumn]
             self.mergedLabelDF=trainLabelDF.append(validationLabelDF)
         elif(trainDF is not None and validationDF is None):
