@@ -3,18 +3,19 @@ from HomeDepotCSVReader import HomeDepotReader
 from gensim.models.keyedvectors import KeyedVectors
 
 class Feature_WordMoverDistance():
-    def getDistance(self, source_df, source_columnName, target_df, target_columnName):
+    def __init__(self):
         # Load word2vec model using google pretrained vectors
         print("Loading Pre-trained vector")
         # Download link for GoogleNews-vectors-negative300.bin
         # https://drive.google.com/file/d/0B7XkCwpI5KDYNlNUTTlSS21pQmM/edit?usp=sharing
-        model = KeyedVectors.load_word2vec_format('../../data/GoogleNews-vectors-negative300.bin', binary=True)
+        self.model = KeyedVectors.load_word2vec_format('../../data/GoogleNews-vectors-negative300.bin', binary=True)
         print("Loaded Pre-trained vector. Normalising now")
         # Normalize the embedding vectors
-        model.init_sims(replace=True)
+        self.model.init_sims(replace=True)
 
-        print("Computing distance")
-        target_vectors = [model.wmdistance(
+    def getDistance(self, source_df, source_columnName, target_df, target_columnName):
+        print("Computing WordMoverDistance now")
+        target_vectors = [self.model.wmdistance(
             fe.homedepotTokeniser(str(target_df[target_columnName].iloc[row.product_idx].values[0])),
             fe.homedepotTokeniser(str(row[source_columnName])))
                           for _, row in source_df.iterrows()]
