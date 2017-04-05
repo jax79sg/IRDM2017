@@ -3,6 +3,8 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 import pandas as pd
 from HomeDepotCSVWriter import HomeDepotCSVWriter
+from collections import defaultdict
+import numpy as np
 
 class DataPreprocessing():
 
@@ -10,9 +12,36 @@ class DataPreprocessing():
     newLabels = None
     mergedLabelDF = None
     attribute_doc_df = None
+    oldToNewlabelMapping=None
+    newToOldlabelMapping = None
 
     def __init__(self):
-        pass
+        self._loadLabelMappings()
+
+    def _loadLabelMappings(self):
+        self.newToOldlabelMapping=defaultdict(float)
+        self.oldToNewlabelMapping = defaultdict(float)
+        try:
+            print("Loading LabelRemap.txt")
+            f = open('data/LabelRemap.txt', 'r')
+            for line in f:
+                oldNnew=line.split(',')
+                self.oldToNewlabelMapping[float(oldNnew[0])]=float(oldNnew[1])
+                self.newToOldlabelMapping[float(oldNnew[1])]=float(oldNnew[0])
+            f.close()
+        except Exception as err:
+            print("Ignore this error:",err)
+            pass
+
+    def transformNewLabelToOld(self, oneDnumpyFloat):
+
+        oldrank=[]
+        for newrank in oneDnumpyFloat:
+            oldrank.append(self.newToOldlabelMapping[newrank])
+
+        # print("newrank:",np.array(oneDnumpyFloat))
+        # print("oldrank:", np.array(oldrank))
+        return np.array(oldrank)
 
     def generateValidationSet(self,trainset, test_size=0.2):
         """
@@ -95,6 +124,15 @@ class DataPreprocessing():
         #Generate new labels
         self.newLabels = np.arange(0, self.mergedLabelDF[trainLabelColumn].sort_values().unique().shape[0])
         print('newLabels:',self.newLabels)
+
+        #Save the mapping of the relabelling
+        f = open('data/LabelRemap.txt', 'w')
+        i=0
+        while i<self.newLabels.size:
+            s=str(self.oldLabels[i])+","+str(self.newLabels[i])+"\n"
+            f.write(s)
+            i=i+1
+        f.close()
 
         #Label replacement
         print("Creating new column for training: ",newColName)
