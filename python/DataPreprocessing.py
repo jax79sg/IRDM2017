@@ -15,15 +15,13 @@ class DataPreprocessing():
     oldToNewlabelMapping=None
     newToOldlabelMapping = None
 
-    def __init__(self):
-        self._loadLabelMappings()
 
     def _loadLabelMappings(self):
         self.newToOldlabelMapping=defaultdict(float)
         self.oldToNewlabelMapping = defaultdict(float)
         try:
             print("Loading LabelRemap.txt")
-            f = open('data/LabelRemap.txt', 'r')
+            f = open('../data/LabelRemap.txt', 'r')
             for line in f:
                 oldNnew=line.split(',')
                 self.oldToNewlabelMapping[float(oldNnew[0])]=float(oldNnew[1])
@@ -31,10 +29,9 @@ class DataPreprocessing():
             f.close()
         except Exception as err:
             print("Ignore this error:",err)
-            pass
 
     def transformNewLabelToOld(self, oneDnumpyFloat):
-
+        self._loadLabelMappings()
         oldrank=[]
         for newrank in oneDnumpyFloat:
             oldrank.append(self.newToOldlabelMapping[newrank])
@@ -126,7 +123,7 @@ class DataPreprocessing():
         print('newLabels:',self.newLabels)
 
         #Save the mapping of the relabelling
-        f = open('data/LabelRemap.txt', 'w')
+        f = open('../data/LabelRemap.txt', 'w')
         i=0
         while i<self.newLabels.size:
             s=str(self.oldLabels[i])+","+str(self.newLabels[i])+"\n"
