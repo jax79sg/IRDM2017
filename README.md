@@ -41,7 +41,8 @@ More ideas of features can be found here https://www.microsoft.com/en-us/researc
 
 **TODO for Model Selection:**
 + Pointwise
-    + Ordinal Regression (!!! Emine emailed Linear Regression cannot use libraries....Kah Siong: Training-Done, Prediction-Done, Evaluation-WIP) (MORD, and if MORD doesn't work then https://gist.github.com/agramfort/2071994)
+    + Ordinal Regression and variants (Kah Siong: Done) (Stick with Ridge variant) (MORD, and if MORD doesn't work then https://gist.github.com/agramfort/2071994)
+    + Factorisation Machine multiclass classifier (Kah Siong: Done) (Its running now but it doesn't seem to predict properly... above 1 RMSE)
     + Support Vector Machine 
     + Boosted Regression
     + Perception <- perceptron? 
