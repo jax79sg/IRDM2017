@@ -72,7 +72,7 @@ class NDCG_Eval():
         for searchterm, eachGroup in groupByGoldDFSearchTerm:
             DCGmax=self._computeDCG(eachGroup[self.RELEVANCE_SCORE_COL].as_matrix())
             goldDF.ix[goldDF.search_term==searchterm,self.DCGMAX_COL]=DCGmax
-        goldDF.to_csv('../data/dcgMax.csv')
+        # goldDF.to_csv('../data/dcgMax.csv')
         # print("Creation of DCGmax:\n",goldDF)
         print("Completed: Sorting by query small to big, relevance big to small")
 
@@ -125,7 +125,7 @@ class NDCG_Eval():
             ndcg=columns[self.DCGP_COL]/columns[self.DCGMAX_COL]
             return ndcg
 
-        predictDF.to_csv('../data/zeroMax.csv')
+        # predictDF.to_csv('../data/zeroMax.csv')
         predictDF[self.NDCG_COL]=predictDF.apply(ndcg,axis=1)
         # print("Creation of NDCGp predict:\n", predictDF)
         print("Completed: Computing NDCG = DCGp / DCGmax")
