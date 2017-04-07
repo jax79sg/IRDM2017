@@ -187,6 +187,7 @@ if __name__ == "__main__":
     goldList=[['two',2,10001],['two',1,10011],['one',2,10001],['one',1,10002],['one',0,10003],['one',0,10004],['one',2,10005],['one',1,10006],['one',0,10007],['one',1,10008],['one',0,10009],['one',0,10010]]
     golddf=pd.DataFrame(goldList,columns=['search_term','relevance_int','product_uid'])
 
+    #The golddf and predictdf should be the same set, except that predictdf's relevance_int is your predicted relevances and they should be using same scores as golddf
     predictList=[['two',3,10001],['two',3,10011],['one',1,10001],['one',2,10002],['one',1,10003],['one',0,10004],['one',0,10005],['one',2,10006],['one',1,10007],['one',2,10008],['one',2,10009],['one',1,10010]]
     predictdf = pd.DataFrame(predictList, columns=['search_term', 'relevance_int', 'product_uid'])
     # print(predictdf)
