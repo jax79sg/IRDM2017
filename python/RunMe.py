@@ -1,11 +1,15 @@
 import pandas as pd
+import numpy as np
 from HomeDepotCSVReader import HomeDepotReader
 from FeatureEngineering import HomeDepotFeature
 from HomeDepotCSVWriter import HomeDepotCSVWriter
 from XGBoostRanker import XGBoostRanker
 from OrdinalRegressionRanker import OrdinalRegressionRanker
+import LogisticRegressionRanker
 from DataPreprocessing import DataPreprocessing
 import Feature_Doc2Vec
+import FacMachineRanker
+from Utilities import Utility
 
 def getFeature(train_query_df, product_df, attribute_df, test_query_df, features):
     print("####  Running: RunMe.getFeature() ####")
@@ -24,12 +28,66 @@ def runXGBoostRanker(train_df, test_df):
     xgb = XGBoostRanker()
     xgb.train(train_df)
 
-def runOrdinalRegressionRanker(train_df, test_df):
-    print("####  Running: OrdinalRegression ####")
-    dp=DataPreprocessing()
-    trainDF,validateDF=dp.generateValidationSet(train_df)
-    orRanker = OrdinalRegressionRanker('logAT')
-    orRanker.train(trainDF, validateDF)
+def runOrdinalRegressionRankerLAD(train_df, test_df):
+    print("####  Running: OrdinalRegression LAD ####")
+    # dp=DataPreprocessing()
+    # trainDF,validateDF=dp.generateValidationSet(train_df)
+    orRanker = OrdinalRegressionRanker('lad')
+    orRanker.train(train_df, None)
+    print("####  Completed: OrdinalRegression LAD ####")
+
+def runOrdinalRegressionRankerOrdRidgeGridSearch(train_df, test_df):
+    print("####  Running GridSearch: OrdinalRegression ordridge ####")
+    # dp=DataPreprocessing()
+    # trainDF,validateDF=dp.generateValidationSet(train_df)
+    orRanker = OrdinalRegressionRanker('ordridge')
+    orRanker.gridSearch(train_df, None)
+    print("####  Completed GridSearch: OrdinalRegression ordridge ####")
+
+
+
+def runOrdinalRegressionRankerOrdRidge(train_df, test_df):
+    print("####  Running: OrdinalRegression ordridge training ####")
+    # dp=DataPreprocessing()
+    # trainDF,validateDF=dp.generateValidationSet(train_df)
+    orRanker = OrdinalRegressionRanker('ordridge')
+    orRanker.train(train_df, None)
+    print("####  Completed: OrdinalRegression ordridge training ####")
+    return orRanker
+
+def runFacMachineRanker(train_df, test_df):
+    print("####  Running: Factorisation Machine ####")
+    fmRanker = FacMachineRanker.FacMachineRanker()
+    fmRanker.train(train_df, None)
+    print("####  Completed: Fac Machine ####")
+
+
+def runOrdinalRegressionRankerLogit(train_df, test_df):
+    print("####  Running: OrdinalRegression LOGIT ####")
+    # dp=DataPreprocessing()
+    # trainDF,validateDF=dp.generateValidationSet(train_df)
+    orRanker = OrdinalRegressionRanker('logit')
+    orRanker.train(train_df, None)
+    print("####  Completed: OrdinalRegression LOGIT ####")
+
+def runOrdinalRegressionRankerLogat(train_df, test_df):
+    print("####  Running: OrdinalRegression LOGAT ####")
+    # dp=DataPreprocessing()
+    # trainDF,validateDF=dp.generateValidationSet(train_df)
+    orRanker = OrdinalRegressionRanker('logat')
+    orRanker.train(train_df, None)
+    print("####  Completed: OrdinalRegression LOGAT ####")
+
+
+def runLogisticRegressionRanker(train_df, test_df):
+    print("####  Running: Logistic Regression ####")
+    # dp=DataPreprocessing()
+    # trainDF,validateDF=dp.generateValidationSet(train_df)
+    lrRanker = LogisticRegressionRanker.LogisticRegressionRanker()
+    lrRanker.train(train_df, None)
+    print("####  Completed: Logistic Regression ####")
+    # lrRanker.train(trainDF, validateDF)
+
 
 if __name__ == "__main__":
     train_filename = '../../data/train.csv'
