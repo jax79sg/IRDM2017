@@ -63,7 +63,7 @@ More ideas of features can be found here https://www.microsoft.com/en-us/researc
     + Match tensor - (Min: Reading on this https://arxiv.org/pdf/1701.07795.pdf)
 
 **TODO for Evaluation:**
-+ NDCG (Kah Siong: Python Done) Note: libRank has in-built implementation for java
++ NDCG (Kah Siong: Done to accommodate our datasets)
 + RMSE
 
 **Goal**
