@@ -13,8 +13,9 @@ class Feature_Doc2Vec:
 
     def __trainModel(self, source_df, source_columnName, target_df, target_columnName):
         target_df['content'] = target_df['product_title'].map(str) + " " + \
-                               target_df['product_description'].map(str) #+ " " + \
-                               # target_df['product_brand'].map(str)
+                               target_df['product_description'].map(str) + " " + \
+                               target_df['product_brand'].map(str) + " " + \
+                               target_df['attr_json'].map(str) + " "
 
         # print(target_df['content'].head(3))
         # Prepare the documents in gensim format
@@ -28,10 +29,33 @@ class Feature_Doc2Vec:
         # print(docs[:2])
         target_df = target_df.drop('content', axis=1)
 
+        # dm defines the training algorithm. By default (dm=1), ‘distributed memory’ (PV-DM) is used. Otherwise,
+        # distributed bag of words (PV-DBOW) is employed.
+
         # Use PV-DM w/concatenation to preserve word ordering information, hierarchical sampling = 1 Reduce complexity from V sq
         # model = Doc2Vec(dm=0, size=100, window=10, min_count=1, workers=-1, alpha=0.01, dm_concat=0, dm_mean=0,
         #                 min_alpha=0.0005, hs=1, negative=0, iter=20)
-        model = Doc2Vec(size=50, min_count=10, window=10, iter=500, workers=-1, alpha=0.1, min_alpha=0.0001, dm_concat=0, dm=1)
+        # model = Doc2Vec(size=50, min_count=5, window=5, iter=500, workers=4, alpha=0.05, min_alpha=0.0001,
+        #                 dm_concat=0, dm=0, sample=0.0001, negative=5) #0.487024752107
+        # model = Doc2Vec(size=50, min_count=5, window=5, iter=30, workers=4, alpha=0.1, min_alpha=0.0001,
+        #                 dm_concat=0, dm=0)  #0.477774911174
+        # model = Doc2Vec(size=50, min_count=5, window=10, iter=30, workers=4, alpha=0.1, min_alpha=0.0001,
+        #                 dm_concat=0, dm=0)  #0.478062205307
+        # model = Doc2Vec(size=50, min_count=5, window=5, iter=50, workers=4, alpha=0.1, min_alpha=0.0001,
+        #                 dm_concat=0, dm=0)  # 0.478444905034
+        # model = Doc2Vec(size=50, min_count=5, window=5, iter=30, workers=4, alpha=0.1, min_alpha=0.0001,
+        #                 dm_concat=0, dm=0, sample=0.0001)  # 0.485056906286
+        # model = Doc2Vec(size=50, min_count=5, window=5, iter=30, workers=4, alpha=0.1, min_alpha=0.0001,
+        #                 dm_concat=0, dm=0, negative=5)  # 0.477577484043
+        # model = Doc2Vec(size=50, min_count=5, window=5, iter=30, workers=4, alpha=0.1, min_alpha=0.0001,
+        #                 dm_concat=1, dm=0, negative=5)  #0.477229416528
+        # model = Doc2Vec(size=50, min_count=5, window=5, iter=30, workers=4, alpha=0.1, min_alpha=0.0001,
+        #                 dm_concat=1, dm=0, negative=10)  # 0.478414630959
+        # model = Doc2Vec(size=100, min_count=5, window=5, iter=30, workers=4, alpha=0.1, min_alpha=0.0001,
+        #                 dm_concat=1, dm=0, negative=5)  # 0.475162564016
+        model = Doc2Vec(size=300, min_count=5, window=5, iter=30, workers=4, alpha=0.1, min_alpha=0.0001,
+                        dm_concat=1, dm=0, negative=5)  # 0.474772252382
+
 
         # Build the vocab using gensim format
         model.build_vocab(docs)
@@ -78,9 +102,9 @@ class Feature_Doc2Vec:
             # print("reuse: " + 'doc2vec_' + source_columnName + '_vector')
             search_vectors = source_df['doc2vec_' + source_columnName + '_vector'].tolist()
         else:
-            search_vectors = [np.array(model.infer_vector(FeatureEngineering.homedepotTokeniser(row), alpha=0.025, min_alpha=0.01, steps=20))
+            search_vectors = [np.array(model.infer_vector(FeatureEngineering.homedepotTokeniser(row), alpha=0.025, min_alpha=0.001, steps=40))
                               for _, row in source_df[source_columnName].iteritems()]
-            source_df['doc2vec_' + source_columnName + '_vector'] = search_vectors
+            # source_df['doc2vec_' + source_columnName + '_vector'] = search_vectors
         print("Feature_Doc2Vec search_vectors took: %s minutes" % round(((time.time() - start_time) / 60), 2))
 
         if str('doc2vec_' + target_columnName + '_vector') in source_df.columns:
@@ -89,9 +113,9 @@ class Feature_Doc2Vec:
         else:
             target_vectors = [np.array(model.infer_vector(
                 FeatureEngineering.homedepotTokeniser(str(target_df[target_columnName].iloc[row].values[0])),
-                alpha=0.025, min_alpha=0.01, steps=40))
+                alpha=0.025, min_alpha=0.001, steps=40))
                               for _, row in source_df.product_idx.iteritems()]
-            source_df['doc2vec_' + target_columnName + '_vector'] = target_vectors
+            # source_df['doc2vec_' + target_columnName + '_vector'] = target_vectors
         print("Feature_Doc2Vec target_vectors took: %s minutes" % round(((time.time() - start_time) / 60), 2))
 
         # print(source_df['doc2vec_' + source_columnName + '_vector'].head(10))
@@ -171,14 +195,14 @@ class Feature_Doc2Vec:
         #
         # # print(cosine_similarity(s2, model.docvecs['id_113968']))
 
-class LabeledLineSentence(object):
-    def __init__(self, dataframe, columnName):
-       self.dataframe = dataframe
-       self.columnName = columnName
-
-    def __iter__(self):
-        for idx, row in self.dataframe.iterrows():
-            yield TaggedDocument(FeatureEngineering.homedepotTokeniser(row.product_title), row.product_uid)
+# class LabeledLineSentence(object):
+#     def __init__(self, dataframe, columnName):
+#        self.dataframe = dataframe
+#        self.columnName = columnName
+#
+#     def __iter__(self):
+#         for idx, row in self.dataframe.iterrows():
+#             yield TaggedDocument(FeatureEngineering.homedepotTokeniser(row.product_title), row.product_uid)
 
 
 # #and change it=DocIt.DocIterator(data, docLabels) to
