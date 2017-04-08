@@ -13,30 +13,30 @@ class XGBoostRanker():
     def __init__(self):
         self.y_parameter = 'relevance'
         self.x_parameter = [
-                'tfidf_product_title', # 0.6383
-                'tfidf_product_brand',
-                'tfidf_product_description',
-                'tfidf_attr_json',
-                'tfidf_expanded_product_title',
-                'tfidf_expanded_product_brand',
-                'tfidf_expanded_product_description',
-                'tfidf_expanded_attr_json',
+                # 'tfidf_product_title', # 0.6383
+                # 'tfidf_product_brand',
+                # 'tfidf_product_description',
+                # 'tfidf_attr_json',
+                # 'tfidf_expanded_product_title',
+                # 'tfidf_expanded_product_brand',
+                # 'tfidf_expanded_product_description',
+                # 'tfidf_expanded_attr_json',
                 'doc2vec_product_title', #0.62808
                 'doc2vec_product_brand',
                 'doc2vec_product_description',
                 'doc2vec_attr_json',
-                'doc2vec_expanded_product_title',
-                'doc2vec_expanded_product_brand',
-                'doc2vec_expanded_product_description',
-                'doc2vec_expanded_attr_json',
-                'bm25',
-                'bm25expandedquery',
-                'len_product_title',
-                'len_product_description',
-                'len_brand',
-                'len_search_term',
-                'brand_exist',
-                'color_exist',
+                # 'doc2vec_expanded_product_title',
+                # 'doc2vec_expanded_product_brand',
+                # 'doc2vec_expanded_product_description',
+                # 'doc2vec_expanded_attr_json',
+                # 'bm25',
+                # 'bm25expandedquery',
+                # 'len_product_title',
+                # 'len_product_description',
+                # 'len_brand',
+                # 'len_search_term',
+                # 'brand_exist',
+                # 'color_exist',
                 # 'color1hot_almond',
                 # 'color1hot_aluminum',
                 # 'color1hot_beige',
@@ -93,13 +93,13 @@ class XGBoostRanker():
                 # 'color1hot_white',
                 # 'color1hot_wood',
                 # 'color1hot_yellow',
-                'wm_product_description',
-                'wm_product_title',
-                'wm_product_brand',
-                'wm_attr_json',
+                # 'wm_product_description',
+                # 'wm_product_title',
+                # 'wm_product_brand',
+                # 'wm_attr_json',
             ]
 
-    def train(self, trainDF):
+    def train_classifier(self, trainDF):
         y_train = trainDF[self.y_parameter]
         x_train = trainDF[self.x_parameter]
 
@@ -166,8 +166,8 @@ class XGBoostRanker():
         y_pred = [y*3 for y in y_pred]
         y_test = [y*3 for y in y_test]
 
-        for i in range(30):
-            print("Gold: %.2f  Pred: %.2f" %(y_test[i], y_pred[i]))
+        # for i in range(30):
+        #     print("Gold: %.2f  Pred: %.2f" %(y_test[i], y_pred[i]))
 
         print("Test RMSE: ", rmse(y_test, y_pred))
 
@@ -222,29 +222,37 @@ def rmse(y_gold, y_pred):
 
 if __name__ == "__main__":
     reader = HomeDepotReader()
-    feature_df = reader.getBasicDataFrame("../data/features_full.csv")
-    # feature_df = reader.getBasicDataFrame("../data/features_Doc2Vec.csv")
+    # feature_df = reader.getBasicDataFrame("../data/features_full2.csv")
+    feature_df = reader.getBasicDataFrame("../data/features_doc2vec_dm0_sam6.csv")
     # feature_df = reader.getBasicDataFrame("../data/features_Doc2Vec_retrain.csv")
 
-    feature_train_df = feature_df[:74067]
-    feature_test_df = feature_df[74067:]
+    print(feature_df.info())
+    columnname = feature_df.columns
+    feature_train_df = feature_df
 
-    # feature_test_df['relevance'] = np.zeros(166693)
-    # feature_test_df['relevance_int'] = np.zeros(166693)
-    feature_test_df.pop('relevance')
-    print(feature_test_df.info())
+    # print(columnname)
 
-    soln_filename = '../data/solution.csv'
-    soln_df = pd.read_csv(soln_filename, delimiter=',', low_memory=False, encoding="ISO-8859-1")
-    print(soln_df.info())
-    dp = DataPreprocessing()
-    # df_a.merge(df_b, on='mukey', how='left')
-    test_private_df = dp.getGoldTestSet(feature_test_df, soln_df,
-                                        testsetoption='Private')  # ,savepath='../data/test_private_gold.csv')
-    test_public_df = dp.getGoldTestSet(feature_test_df, soln_df,
-                                       testsetoption='Public')  # savepath='../data/test_public_gold.csv')
+    # feature_train_df = feature_df[:74067]
+    # feature_test_df = feature_df[74067:]
+    #
+    # # feature_test_df['relevance'] = np.zeros(166693)
+    # # feature_test_df['relevance_int'] = np.zeros(166693)
+    # feature_test_df.pop('relevance')
+    # print(feature_test_df.info())
+    #
+    # soln_filename = '../data/solution.csv'
+    # soln_df = pd.read_csv(soln_filename, delimiter=',', low_memory=False, encoding="ISO-8859-1")
+    # print(soln_df.info())
+    # dp = DataPreprocessing()
+    # # df_a.merge(df_b, on='mukey', how='left')
+    # test_private_df = dp.getGoldTestSet(feature_test_df, soln_df,
+    #                                     testsetoption='Private')  # ,savepath='../data/test_private_gold.csv')
+    # test_public_df = dp.getGoldTestSet(feature_test_df, soln_df,
+    #                                    testsetoption='Public')  # savepath='../data/test_public_gold.csv')
 
-    print(feature_train_df)
+    # print(feature_train_df)
+
+
 
     print("####  Running: XGBoostRanker.runXGBoostRanker() ####")
     xgb = XGBoostRanker()
@@ -252,6 +260,6 @@ if __name__ == "__main__":
     xgb.train_Regressor(feature_train_df)
     # xgb.gridSearch(feature_df)
 
-    xgb.test_Model(test_public_df)
-    xgb.test_Model(test_private_df)
+    # xgb.test_Model(test_public_df)
+    # xgb.test_Model(test_private_df)
 
