@@ -29,7 +29,7 @@ class Feature_TFIDF():
         start_time = time.time()
         # print("Into getCosineSimilarity")
         tfidf = TfidfVectorizer(tokenizer=nltk.word_tokenize, smooth_idf=True, use_idf=True, sublinear_tf=True,
-                                stop_words=None, lowercase=True, ngram_range=(1, 1))
+                                stop_words=None, lowercase=True, ngram_range=(1, 2), norm='l2')
         print("TfidfVectorizer init took: %s minutes" % round(((time.time() - start_time) / 60), 2))
         tfs = tfidf.fit_transform(target_df[target_columnName])
         print("TfidfVectorizer fit took: %s minutes" % round(((time.time() - start_time) / 60), 2))
