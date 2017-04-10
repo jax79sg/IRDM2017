@@ -147,9 +147,13 @@ class Feature_ColorMaterial():
 
 
     def checkColorMaterialExists(self, train_query_df, product_df):
+        product_df['content'] = product_df['product_title'].map(str) + " " + \
+                                product_df['product_description'].map(str) + " " + \
+                                product_df['attr_json'].map(str)
+
         # Create ColorMaterial Column
         print("Creating Color Column")
-        product_df['product_color'] = product_df['product_description'].map(lambda x: self.__createColorMaterialColumn(x.lower()))
+        product_df['product_color'] = product_df['content'].map(lambda x: self.__createColorMaterialColumn(x.lower()))
         print("Created Color Column")
 
         print(product_df.info())
@@ -167,7 +171,7 @@ class Feature_ColorMaterial():
             # row['color'] = set(col)
             all.append(set(col))
             # print(str(row['search_term']) + " " + str(row['relevance']) +" $$$$$$$$$$$$$$$$$$$$$\n" + str(set(col)))
-
+        product_df.pop('content')
         return all
         # train_query_df['search_term'].map(lambda x: self.__helperFunc(x.lower()))
 
