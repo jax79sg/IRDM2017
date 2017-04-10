@@ -17,35 +17,35 @@ More ideas of features can be found here https://www.microsoft.com/en-us/researc
 + Query-independant (Document only)
     + Document Length (Chun Siong: Done)
     + Brand Column (Chun Siong: Done)
+    + Document, search term, title length (Chun Siong: Done)
 + Query-dependant (Document and query)
     + TF-IDF (Chun Siong: Done)
+    + Binary indicator if color/material in search term is also in product (Chun Siong: WIP)
+    + Binary indicator if brand in search term is also product brand (Chun Siong: WIP)
     + BM25 on product title and description combined (Kah Siong: Done)
     + LMIR.ABS (Min: WIP, Feature_LMIR.py implemented, but not incorporated into FeatureEngineering.py)
     + LMIR.DIR
     + LMIR.JM
     + LDA
-+ Query-only
-    + Query expansion (Kah Siong: Done with Word2Vec Query Expansion)
 
-+ Similarity measure
-    + Cosine Similarity (Chun Siong: Done)
++ Cosine Similarity (Chun Siong: Done)
 + Doc2Vec (Chun Siong: Done)
-+ Document, search term, title length (Chun Siong: Done)
-+ Binary indicator if color/material in search term is also in product (Chun Siong: WIP)
-+ Binary indicator if brand in search term is also product brand (Chun Siong: WIP)
 + Word2Vec (Kah Siong: Done)
++ Query expansion (Kah Siong: Done with Word2Vec Query Expansion)
 + KL ? (What's this?) Kulback lieber, i've seen it mentioned in comparisons which include BM25, LMIR, KL https://www.microsoft.com/en-us/research/publication/relevance-ranking-using-kernels/
 + Output all computed feature to Ranklib format
 
-
-
 **TODO for Model Selection:**
++ Neural network
+    + Match tensor - (Min: Reading on this https://arxiv.org/pdf/1701.07795.pdf)
+
 + Pointwise
-    + Ordinal Regression and variants (Kah Siong: Done) (Stick with Ridge variant) (MORD, and if MORD doesn't work then https://gist.github.com/agramfort/2071994)
-    + Factorisation Machine multiclass classifier (Kah Siong: Done) (Its running now but it doesn't seem to predict properly... above 1 RMSE)
+    + Ordinal Regression and variants (Kah Siong: Done) (Stick with Ridge variant best performer) (MORD, and if MORD doesn't work then https://gist.github.com/agramfort/2071994)
+    + Factorisation Machine multiclass classifier (Kah Siong: Done) (NOT GOOD..Its running now but it doesn't seem to predict properly for one vs all multiclass... above 1 RMSE)
     + Support Vector Machine 
     + Boosted Regression
     + Perception <- perceptron? 
+    + XGBoost
 
 + Pairwise
     + RankNet (RankLib)
@@ -58,9 +58,6 @@ More ideas of features can be found here https://www.microsoft.com/en-us/researc
 + Listwise
     + ListNet (RankLib)
     + AdaRank (RankLib)
-
-+ Neural network
-    + Match tensor - (Min: Reading on this https://arxiv.org/pdf/1701.07795.pdf)
 
 **TODO for Evaluation:**
 + NDCG (Kah Siong: Done to accommodate our datasets)
