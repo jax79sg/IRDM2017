@@ -40,7 +40,8 @@ More ideas of features can be found here https://www.microsoft.com/en-us/researc
     + Match tensor - (Min: Reading on this https://arxiv.org/pdf/1701.07795.pdf)
 
 + Pointwise
-    + Ordinal Regression and variants (Kah Siong: Done) (Stick with Ridge variant best performer) (MORD, and if MORD doesn't work then https://gist.github.com/agramfort/2071994)
+    + Logistic Regression (Kah Siong: Done)
+    + Ordinal Regression and variants (LAD, LOGIT, LOGAT) (Kah Siong: Done) (Stick with Ridge variant best performer) (MORD, and if MORD doesn't work then https://gist.github.com/agramfort/2071994)
     + Factorisation Machine multiclass classifier (Kah Siong: Done) (NOT GOOD..Its running now but it doesn't seem to predict properly for one vs all multiclass... above 1 RMSE)
     + Support Vector Machine 
     + Boosted Regression
