@@ -563,7 +563,7 @@ class HomeDepotFeature():
 
         print("train_query_df final column:\n", train_query_df.info())
 
-        return train_query_df
+        return train_query_df,product_df,attribute_df
 
     def getFeature_old(self, df):
         ## Please feel free to add feature into this method.
@@ -631,7 +631,10 @@ class HomeDepotFeature():
         return product_df.join(attribute_doc_df.set_index('product_uid'), on='product_uid')
 
     def __spell_correction(self, s, spell_dict):
-        return " ".join([spell_dict[word.lower()] if word.lower() in spell_dict else word.lower()
+        #return " ".join([spell_dict[word.lower()] if word.lower() in spell_dict else word.lower()
+        #                 for word in homedepotTokeniser(s)])
+
+        return " ".join([spell_dict[word.lower()] if word.lower() in spell_dict else word
                          for word in homedepotTokeniser(s)])
 
     def __stemming(self, s):
