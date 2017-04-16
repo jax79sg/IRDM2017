@@ -26,7 +26,7 @@ class HomeDepotFeature():
         self.stemmer = Stemmer.Stemmer('english')
 
     def getFeature(self, train_query_df, product_df, attribute_df, test_query_df,
-                   features="brand,attribute,spelling,nonascii,stopwords,colorExist,brandExist,wmdistance,stemming,word2vec,Word2VecQueryExpansion,tfidf,tfidf_expandedquery,doc2vec,doc2vec_expandedquery,bm25,bm25expandedquery,doclength"):
+                   features="brand,attribute,spelling,nonascii,stopwords,colorExist,color_onehot,brandExist,wmdistance,stemming,word2vec,Word2VecQueryExpansion,tfidf,tfidf_expandedquery,doc2vec,doc2vec_expandedquery,bm25,bm25expandedquery,doclength"):
         ## Please feel free to add feature into this method.
         ## For testing, you may want to comment out some feature generation to save time
         ## as some takes a long time to run.
@@ -636,7 +636,7 @@ class HomeDepotFeature():
 
     def __stemming(self, s):
         # return " ".join([self.stemmer.stemWord(word) for word in s.lower().split()])
-        return " ".join([self.stemmer.stemWord(word) for word in homedepotTokeniser(s)])
+        return " ".join([self.stemmer.stemWord(word.lower()) for word in homedepotTokeniser(s)])
 
     def __nonascii_clean(self,s):
         return "".join(letter for letter in s if ord(letter) < 128)

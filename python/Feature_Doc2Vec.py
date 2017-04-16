@@ -35,8 +35,10 @@ class Feature_Doc2Vec:
         # Use PV-DM w/concatenation to preserve word ordering information, hierarchical sampling = 1 Reduce complexity from V sq
         # model = Doc2Vec(dm=0, size=100, window=10, min_count=1, workers=-1, alpha=0.01, dm_concat=0, dm_mean=0,
         #                 min_alpha=0.0005, hs=1, negative=0, iter=20)
-        # model = Doc2Vec(size=50, min_count=5, window=5, iter=500, workers=4, alpha=0.05, min_alpha=0.0001,
-        #                 dm_concat=0, dm=0, sample=0.0001, negative=5) #0.487024752107
+        # model = Doc2Vec(size=50, min_count=5, window=5, iter=50, workers=4, alpha=0.1, min_alpha=0.0001,
+        #                 dm_concat=0, dm=1, sample=0.0001, negative=5) #0.487024752107
+
+
         # model = Doc2Vec(size=50, min_count=5, window=5, iter=30, workers=4, alpha=0.1, min_alpha=0.0001,
         #                 dm_concat=0, dm=0)  #0.477774911174
         # model = Doc2Vec(size=50, min_count=5, window=10, iter=30, workers=4, alpha=0.1, min_alpha=0.0001,
@@ -55,6 +57,22 @@ class Feature_Doc2Vec:
         #                 dm_concat=1, dm=0, negative=5)  # 0.475162564016
         model = Doc2Vec(size=300, min_count=5, window=5, iter=30, workers=4, alpha=0.1, min_alpha=0.0001,
                         dm_concat=1, dm=0, negative=5)  # 0.474772252382
+        # model = Doc2Vec(size=100, min_count=7, window=5, iter=60, workers=4, alpha=0.1, min_alpha=0.0001,
+        #                 dm_concat=1, dm=0, negative=5)  # 0.475999128438
+        # model = Doc2Vec(size=100, min_count=5, window=10, iter=30, workers=4, alpha=0.1, min_alpha=0.0001,
+        #                 dm_concat=1, dm=0, negative=5)  # 0.475100829231
+
+
+        # model = Doc2Vec(size=300, min_count=5, window=5, iter=100, workers=4, alpha=0.1, min_alpha=0.0001,
+        #                 dm_concat=1, dm=1, negative=5)  # 0.520476483629
+        # model = Doc2Vec(size=100, min_count=5, window=5, iter=30, workers=4, alpha=0.1, min_alpha=0.0001,
+        #                 dm_concat=0, dm=1, negative=5)  # 0.499340519102
+        # model = Doc2Vec(size=100, min_count=5, window=5, iter=60, workers=4, alpha=0.1, min_alpha=0.0001,
+        #                 dm_concat=0, dm=1)  # 0.519523657276
+        # model = Doc2Vec(size=100, min_count=5, window=5, iter=30, workers=4, alpha=0.1, min_alpha=0.0001,
+        #                 dm_concat=1, dm=1, negative=5)  # 0.516688880974
+        # model = Doc2Vec(size=100, min_count=5, window=5, iter=90, workers=4, alpha=0.1, min_alpha=0.0001,
+        #                 dm_concat=0, dm=1, negative=5)  # 0.517297573909
 
 
         # Build the vocab using gensim format
