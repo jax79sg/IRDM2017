@@ -2,7 +2,7 @@
 Information Retreival and Data Mining
 
 
-**TODO for Data Processing:**
+**Ideas for Data Processing:**
 + Stemming + lower case (Chun Siong: Done)
 + Spelling correction (Chun Siong: Done)
 + Remove punctuation (Chun Siong: Done. There is a tokeniser based on RE under FeatureEngineering.py)
@@ -10,9 +10,9 @@ Information Retreival and Data Mining
 + Stopword removal (Min: Done)
 + Merge all attributes key value pair into a single text field (Min: Done)
 + Brand Column (Chun Siong: Done)
-+ Color and material Column (Chun Siong: WIP)
++ Color and material Column (Chun Siong: Done)
 
-**TODO for Feature Engineering:**
+**Ideas for Feature Engineering:**
 More ideas of features can be found here https://www.microsoft.com/en-us/research/project/mslr/
 + Query-independant (Document only)
     + Document Length (Chun Siong: Done)
@@ -20,8 +20,8 @@ More ideas of features can be found here https://www.microsoft.com/en-us/researc
     + Document, search term, title length (Chun Siong: Done)
 + Query-dependant (Document and query)
     + TF-IDF (Chun Siong: Done)
-    + Binary indicator if color/material in search term is also in product (Chun Siong: WIP)
-    + Binary indicator if brand in search term is also product brand (Chun Siong: WIP)
+    + Binary indicator if color/material in search term is also in product (Chun Siong: Done)
+    + Binary indicator if brand in search term is also product brand (Chun Siong: Done)
     + BM25 on product title and description combined (Kah Siong: Done)
     + LMIR.ABS (Min: WIP, Feature_LMIR.py implemented, but not incorporated into FeatureEngineering.py)
     + LMIR.DIR
@@ -35,7 +35,7 @@ More ideas of features can be found here https://www.microsoft.com/en-us/researc
 + KL ? (What's this?) Kulback lieber, i've seen it mentioned in comparisons which include BM25, LMIR, KL https://www.microsoft.com/en-us/research/publication/relevance-ranking-using-kernels/
 + Output all computed feature to Ranklib format
 
-**TODO for Model Selection:**
+**Ideas for Model Selection:**
 + Neural network
     + Match tensor - (Min: Reading on this https://arxiv.org/pdf/1701.07795.pdf)
 
@@ -46,7 +46,7 @@ More ideas of features can be found here https://www.microsoft.com/en-us/researc
     + Support Vector Machine 
     + Boosted Regression
     + Perception <- perceptron? 
-    + XGBoost
+    + Gradient Boosted Regression Trees (Chun Siong: Done)
 
 + Pairwise
     + RankNet (RankLib)
@@ -60,7 +60,7 @@ More ideas of features can be found here https://www.microsoft.com/en-us/researc
     + ListNet (RankLib)
     + AdaRank (RankLib)
 
-**TODO for Evaluation:**
+**Ideas for Evaluation:**
 + NDCG (Kah Siong: Done to accommodate our datasets)
 + RMSE
 
