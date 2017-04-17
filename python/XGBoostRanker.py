@@ -42,10 +42,10 @@ class XGBoostRanker():
                 'len_search_term',
                 'brand_exist',
                 'color_exist',
-                # 'wm_product_description',
-                # 'wm_product_title',
-                # 'wm_product_brand',
-                # 'wm_attr_json',
+                'wm_product_description',
+                'wm_product_title',
+                'wm_product_brand',
+                'wm_attr_json',
                 'sense2vec_all_simscore',
                 'sense2vec_keeptag_simscore',
                 'sense2vec_uidfact_all_simscore',
@@ -88,9 +88,9 @@ class XGBoostRanker():
 
         print ("No of features in input matrix: %d" % len(x_train.columns))
         self._model = XGBRegressor(learning_rate=0.1, silent=True, objective='binary:logistic', nthread=-1, gamma=0.9,
-                                   min_child_weight=1, max_delta_step=0, subsample=0.8, colsample_bytree=0.7,
-                                   colsample_bylevel=1, reg_alpha=0.001, reg_lambda=1, scale_pos_weight=1,
-                                   base_score=0.5, seed=0, missing=None, max_depth=5, n_estimators=100)
+                                   min_child_weight=1, max_delta_step=0, subsample=0.9, colsample_bytree=0.7,
+                                   colsample_bylevel=1, reg_alpha=0.0009, reg_lambda=1, scale_pos_weight=1,
+                                   base_score=0.5, seed=0, missing=None, max_depth=7, n_estimators=100)
 
         self._model.fit(x_train, y_train)
 
@@ -119,11 +119,12 @@ class XGBoostRanker():
                       # 'gamma': [0.6, 0.7, 0.8, 0.9, 1.0],
                       # 'subsample': [0.6, 0.7, 0.8, 0.9, 1.0],
                       # 'colsample_bytree': [0.6, 0.7, 0.8, 0.9, 1.0],
-                      # 'reg_alpha': [1e-5, 1e-4, 1e-3],
-                      # 'learning_rate': [0.12, 0.1, 0.08]
+                      # 'reg_alpha': [0.0008, 0.0009],
+                      # 'learning_rate': [0.11, 0.1, 0.09],
+                      'n_estimators': [50, 100, 200],
                       }
 
-        ind_params = {'n_estimators': 100,
+        ind_params = {#'n_estimators': 100,
                       'seed': 0,
                       'objective': 'binary:logistic',
                       'base_score': 0.5,
@@ -134,12 +135,12 @@ class XGBoostRanker():
                       'scale_pos_weight': 1,
                       'silent': True,
                       'learning_rate': 0.1,
-                      'max_depth': 5,
+                      'max_depth': 7,
                       'min_child_weight': 1,
                       'gamma': 0.9,
-                      'subsample': 0.8,
+                      'subsample': 0.9,
                       'colsample_bytree': 0.7,
-                      'reg_alpha': 0.001,
+                      'reg_alpha': 0.0009,
                       }
 
         RMSE = make_scorer(rmse, greater_is_better=False)
@@ -282,7 +283,7 @@ if __name__ == "__main__":
     # xgb.gridSearch(feature_df)
     # xgb.gridSearch_Regressor(feature_train_df)
 
-    # xgb.test_Model(test_public_df)
+    # result_df = xgb.test_Model(test_public_df)
     result_df = xgb.test_Model(test_private_df)
 
     # gold_df = pd.DataFrame()
@@ -291,9 +292,9 @@ if __name__ == "__main__":
     # gold_df['relevance_int'] = test_private_df['relevance']
     # ndcg = NDCG_Eval()
     # ndcg.computeAvgNDCG(gold_df, result_df)
-
-    # result_df.pop('product_uid')
-    # result_df.pop('search_term')
-    # result_df.pop('relevance_int')
+    #
+    result_df.pop('product_uid')
+    result_df.pop('search_term')
+    result_df.pop('relevance_int')
     # print(result_df.columns)
-    # HomeDepotCSVWriter().dumpCSV(result_df, "../data/xgboost_private_20170417.csv")
+    HomeDepotCSVWriter().dumpCSV(result_df, "../data/xgboost_private.csv")
