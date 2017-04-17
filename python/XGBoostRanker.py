@@ -8,7 +8,8 @@ import matplotlib.pyplot as plt
 from xgboost import *
 from sklearn.grid_search import GridSearchCV
 from sklearn.metrics import mean_squared_error, make_scorer
-
+from Evaluation import NDCG_Eval
+from HomeDepotCSVWriter import HomeDepotCSVWriter
 
 class XGBoostRanker():
     def __init__(self, feature_train_df):
@@ -41,10 +42,10 @@ class XGBoostRanker():
                 'len_search_term',
                 'brand_exist',
                 'color_exist',
-                'wm_product_description',
-                'wm_product_title',
-                'wm_product_brand',
-                'wm_attr_json',
+                # 'wm_product_description',
+                # 'wm_product_title',
+                # 'wm_product_brand',
+                # 'wm_attr_json',
                 'sense2vec_all_simscore',
                 'sense2vec_keeptag_simscore',
                 'sense2vec_uidfact_all_simscore',
@@ -176,6 +177,18 @@ class XGBoostRanker():
 
         print("Test RMSE: ", rmse(y_test, y_pred))
 
+        print(test_df.columns)
+
+        result_df = pd.DataFrame()
+        result_df['search_term'] = test_df['search_term']
+        result_df['product_uid'] = test_df['product_uid']
+        result_df['id'] = test_df['id']
+        result_df['relevance_int'] = y_pred
+        result_df['relevance'] = y_pred
+
+        return result_df
+
+
 
     def gridSearch_classifier(self, trainDF):
         y_train = trainDF[self.y_parameter]
@@ -270,5 +283,17 @@ if __name__ == "__main__":
     # xgb.gridSearch_Regressor(feature_train_df)
 
     # xgb.test_Model(test_public_df)
-    xgb.test_Model(test_private_df)
+    result_df = xgb.test_Model(test_private_df)
 
+    # gold_df = pd.DataFrame()
+    # gold_df['search_term'] = test_private_df['search_term']
+    # gold_df['product_uid'] = test_private_df['product_uid']
+    # gold_df['relevance_int'] = test_private_df['relevance']
+    # ndcg = NDCG_Eval()
+    # ndcg.computeAvgNDCG(gold_df, result_df)
+
+    # result_df.pop('product_uid')
+    # result_df.pop('search_term')
+    # result_df.pop('relevance_int')
+    # print(result_df.columns)
+    # HomeDepotCSVWriter().dumpCSV(result_df, "../data/xgboost_private_20170417.csv")
