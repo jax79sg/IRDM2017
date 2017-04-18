@@ -57,8 +57,16 @@ class OrdinalRegressionRanker(object):
             # Best Param: {'alpha': 0.02, 'solver': 'sag', 'max_iter': 100000, 'fit_intercept': True, 'copy_X': True, 'tol': 0.01, 'normalize': True}
 
             # self.model = mord.OrdinalRidge(alpha=1,fit_intercept=True,normalize=False,copy_X=True,max_iter=None,tol=0.001,solver='auto')
-            self.model = mord.OrdinalRidge(alpha=0.0001, fit_intercept=True, normalize=False, copy_X=True, max_iter=300000,
-                                           tol=0.00001, solver='sag')
+
+            # Best Score: -0.48869761710226156
+            # Best Param: {'alpha': 5e-05, 'fit_intercept': True, 'max_iter': 50000, 'copy_X': True, 'normalize': False,
+            #         'solver': 'cholesky', 'tol': 5e-05}
+            ####  Completed: OrdinalRegression ordridge training ####
+            # self.model = mord.OrdinalRidge(alpha=0.00005, fit_intercept=True, normalize=False, copy_X=True, max_iter=50000,
+            #                                tol=0.00005, solver='cholesky')
+
+            self.model = mord.OrdinalRidge(alpha=0.0001, fit_intercept=True, normalize=False, copy_X=True, max_iter=3000000,
+                                           tol=0.0001, solver='auto')
             # self.model = mord.OrdinalRidge(alpha=0.00001, fit_intercept=True, normalize=True, copy_X=True, max_iter=1000000,tol=0.0000001, solver='auto')
         elif (modelType.lower()=='lad'):
             print("Using Least Absolute Deviation")
@@ -101,6 +109,9 @@ class OrdinalRegressionRanker(object):
         self.xTrain.drop('relevance', axis=1, inplace=True)
         self.xTrain.drop('product_idx', axis=1, inplace=True)
         self.xTrain.drop('Word2VecQueryExpansion', axis=1, inplace=True)
+        self.xTrain.drop('len_search_term', axis=1, inplace=True)
+        self.xTrain.drop('len_product_title', axis=1, inplace=True)
+
 
         # self.xTrain.drop('product_idx', axis=1, inplace=True)
         # self.xTrain.drop('Word2VecQueryExpansion', axis=1, inplace=True)
@@ -161,30 +172,28 @@ class OrdinalRegressionRanker(object):
         # print("+++++++++++++++++++++Validation completed")
 
 
-    def validate(self,testDF):
+    def validate(self,testDF, savePredictedFilename='../data/defaultPredictSave.csv'):
         print("+++++++++++++++++++++Validation start")
         print("Remove non trainable features...")
 
 
-
+        savePrediction=testDF['id'].as_matrix()
+        print("Saveprediction=",savePrediction)
         self.xTest=testDF
         self.yTest=testDF[self.yColDiscrete]
         if ('relevance_int' in self.xTest):
             self.xTest=self.xTest.drop('relevance_int', axis=1)
         predictedDF=self.xTest
 
+
         self.xTest=self.xTest.replace('inf',99999)
-        self.xTest.drop('id', axis=1, inplace=True)
-        self.xTest.drop('search_term', axis=1, inplace=True)
-        self.xTest.drop('product_uid', axis=1, inplace=True)
-        self.xTest.drop('relevance', axis=1, inplace=True)
-        self.xTest.drop('product_idx', axis=1, inplace=True)
-        self.xTest.drop('Word2VecQueryExpansion', axis=1, inplace=True)
+        self.xTest=self.xTest.drop('id', axis=1)
+        self.xTest=self.xTest.drop(['search_term','product_uid','relevance','product_idx','Word2VecQueryExpansion','len_search_term','len_product_title'], axis=1)
         self.yPred=self.fittedModel.predict(self.xTest)
         predictedDF['relevance_int'] = self.yPred
 
-        avgNDCG=NDCG_Eval().computeAvgNDCG(testDF, predictedDF)
-        print("avgNDCG:",avgNDCG)
+        avgNDCG=NDCG_Eval().computeAvgNDCG(testDF, predictedDF,"nDCG_"+savePredictedFilename)
+        # print("avgNDCG:",avgNDCG)
         print("Converting to old labels")
         dp=DataPreprocessing()
         self.yTest=dp.transformNewLabelToOld(self.yTest)
@@ -192,6 +201,17 @@ class OrdinalRegressionRanker(object):
         # print("self.yTest:", self.yTest.shape,self.yTest[1:50,])
         # print("self.yPred:", self.yPred.shape, self.yPred[1:50, ])
 
+        savePrediction=pd.DataFrame(savePrediction,columns=['id'])
+        ypredDF=pd.DataFrame(self.yPred,columns=['pred_relevance'])
+        ypredDF.reset_index(drop=True)
+        print("savePrediction.size:",savePrediction.size)
+        print("savePrediction.size:", savePrediction.shape)
+        print("ypredDF.size:", ypredDF.size)
+        assert(savePrediction.size==ypredDF.size)
+        # predictionResults=pd.concat([savePrediction,ypredDF],axis=1)
+        predictionResults=savePrediction.join(ypredDF)
+        predictionResults.to_csv(savePredictedFilename, index=False)
+        print("predictionResults.size:",predictionResults.shape)
         print("MSE:", mean_squared_error(self.yTest, self.yPred))
         print("RMSE:", sqrt(mean_squared_error(self.yTest, self.yPred)))
         print("+++++++++++++++++++++Validation end")
@@ -244,12 +264,12 @@ Precision of the solution.
         param_grid = [{
 
                             #alpha=1,fit_intercept=True,normalize=False,copy_X=True,max_iter=None,tol=0.001,solver='auto'
-                          'alpha': [0.00005,0.0001,0.0005,0.001,0.0015,0.002,0.005,0.01,0.015,0.02,0.05,0.1,0.5,1],
+                          'alpha': [0.00005,0.0001,0.001,0.01,0.1],
                           'fit_intercept': [True,False],
                           'normalize': [False,True],
                           'copy_X': [True,False],
-                          'max_iter':[300000],
-                            'tol':[0.000001,0.00001,0.0001,0.001,0.01],
+                          'max_iter':[50000],
+                            'tol':[0.00005,0.0001,0.0005],
                         'solver':['sag','lsqr','sparse_cg','cholesky','svd']
         }
                       ]
@@ -273,17 +293,23 @@ Precision of the solution.
                                      # cv=3,
                                      # n_jobs=-1,
                                      error_score=0,
-                                    verbose=0)
+                                    verbose=2)
         print("+++++++++++++++++++++GridSearch Training model...")
         print("Remove non trainable features...")
         self.xTrain=trainDF
         self.yTrain=trainDF[self.yColDiscrete]
         if ('relevance_int' in self.xTrain):
             self.xTrain=self.xTrain.drop('relevance_int', axis=1)
-        self.xTrain = self.xTrain.replace('inf', 99999)
-        print("+++++++++++++++++++++Training in progress")
-        # print("self.xTrain:",list(self.xTrain))
-        # print("self.yTrain:", list(self.yTrain))
+        self.xTrain=self.xTrain.replace('inf',99999)
+
+        self.xTrain.drop('id', axis=1, inplace=True)
+        self.xTrain.drop('search_term', axis=1, inplace=True)
+        self.xTrain.drop('product_uid', axis=1, inplace=True)
+        self.xTrain.drop('relevance', axis=1, inplace=True)
+        self.xTrain.drop('product_idx', axis=1, inplace=True)
+        self.xTrain.drop('Word2VecQueryExpansion', axis=1, inplace=True)
+
+
         self._model = optimized_LR.fit(self.xTrain,self.yTrain)
         print("Training complete")
 
@@ -291,130 +317,32 @@ Precision of the solution.
         print("Best Param: ", optimized_LR.best_params_)
 
 
-def getFeatureRMSEAgainstBaseline():
+def getFeatureRMSEAgainstBaseline(cols=['color_exist']):
     utility = Utility()
     utility.startTimeTrack()
     # This part skips the feature training and simply use it.
-
+    print("len(cols):",len(cols),cols)
     print("Reading feature set")
-    all_df=pd.read_csv('../data/features_full.csv')
+    all_df=pd.read_csv('../data/features_doc2vec_sense2vec_pmi_20170418.csv')
     feature_train_df = all_df[:74067]
     # Must drop these columns for OrdinalRegression
-    feature_train_df.drop('id', axis=1, inplace=True)
-    feature_train_df.drop('search_term', axis=1, inplace=True)
-    feature_train_df.drop('product_uid', axis=1, inplace=True)
-    feature_train_df.drop('relevance', axis=1, inplace=True)
-    feature_train_df.drop('product_idx', axis=1, inplace=True)
-    feature_train_df.drop('Word2VecQueryExpansion', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_search_term_vector', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_product_title_vector', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_product_brand_vector', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_product_description_vector', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_attr_json_vector', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_Word2VecQueryExpansion_vector', axis=1, inplace=True)
     feature_train_df.drop('wm_product_brand', axis=1, inplace=True)
 
+    cols.append('relevance_int')
+    cols.append('id')
+    cols.append('search_term')
+    cols.append('product_uid')
+    cols.append('relevance')
+    cols.append('product_idx')
+    cols.append('Word2VecQueryExpansion')
 
-
+    print(cols)
+    feature_train_df=feature_train_df.filter(items=cols,axis=1)
 
     feature_test_df = all_df[74067:]
     feature_test_df.drop('relevance', axis=1, inplace=True)
     utility.checkpointTimeTrack()
-    #Featuers to play with.
-    # feature_train_df.drop('tfidf_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_product_brand', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_attr_json', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_expanded_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_expanded_product_brand', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_expanded_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_expanded_attr_json', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_product_brand', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_attr_json', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_expanded_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_expanded_product_brand', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_expanded_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_expanded_attr_json', axis=1, inplace=True)
-    # feature_train_df.drop('bm25', axis=1, inplace=True)
-    # feature_train_df.drop('bm25expandedquery', axis=1, inplace=True)
-    # feature_train_df.drop('wm_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('wm_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('wm_attr_json', axis=1, inplace=True)
 
-    # feature_train_df.drop('len_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('len_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('len_brand', axis=1, inplace=True)
-    # feature_train_df.drop('len_search_term', axis=1, inplace=True)
-    feature_train_df.drop('color_exist', axis=1, inplace=True)
-    feature_train_df.drop('brand_exist', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_almond', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_aluminum', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_beige', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_bisque', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_biscuit', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_black', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_blue', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_bone', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_brass', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_bronze', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_brown', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_cedar', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_charcoal', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_cherry', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_chestnut', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_chrome', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_clear', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_color', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_concrete', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_copper', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_cream', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_daylight', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_espresso', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_gold', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_gray', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_green', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_grey', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_ivory', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_java', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_linen', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_mahogany', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_metallic', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_mocha', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_multi', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_natural', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_nickel', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_oak', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_orange', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_pewter', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_pink', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_platinum', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_primed', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_purple', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_red', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_sand', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_silver', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_slate', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_stainless', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_steel', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_tan', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_teal', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_unfinished', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_walnut', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_white', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_wood', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_yellow', axis=1, inplace=True)
-
-
-    # Run personal models from this point onward
-    # runOrdinalRegressionRankerLAD(all_df, None)
-    # runOrdinalRegressionRankerOrdRidgeGridSearch(all_df, None)
-    # runFacMachineRanker(all_df, None)
-    # orModel=runOrdinalRegressionRankerOrdRidge(feature_train_df, None)
-    # runLogisticRegressionRanker(all_df, None)
-    # runOrdinalRegressionRankerLogit(all_df, None)
-    # runOrdinalRegressionRankerLogat(all_df, None)
 
     print("####  Running: OrdinalRegression ordridge training ####")
     # dp=DataPreprocessing()
@@ -426,26 +354,62 @@ def getFeatureRMSEAgainstBaseline():
     print("####  Completed: OrdinalRegression ordridge training ####")
     utility.checkpointTimeTrack()
 
-    print("Reading feature set")
-    all_df=pd.read_csv('../data/features_full.csv')
+
+# cols=['color_exist']
+# getFeatureRMSEAgainstBaseline(cols)
+# cols=['color_exist','pmi']
+# getFeatureRMSEAgainstBaseline(cols)
+# cols=['color_exist','bm25']
+# getFeatureRMSEAgainstBaseline(cols)
+# cols=['color_exist','color1hot_almond','color1hot_aluminum','color1hot_beige','color1hot_biscuit','color1hot_bisque','color1hot_black','color1hot_blue','color1hot_bone','color1hot_brass','color1hot_bronze','color1hot_brown','color1hot_cedar','color1hot_charcoal','color1hot_cherry','color1hot_chestnut','color1hot_chocolate','color1hot_chrome','color1hot_clear','color1hot_color','color1hot_concrete','color1hot_copper','color1hot_cream','color1hot_daylight','color1hot_espresso','color1hot_gold','color1hot_gray','color1hot_green','color1hot_grey','color1hot_ivory','color1hot_java','color1hot_linen','color1hot_mahogany','color1hot_metallic','color1hot_mocha','color1hot_multi','color1hot_natural','color1hot_nickel','color1hot_oak','color1hot_orange','color1hot_pewter','color1hot_pink','color1hot_platinum','color1hot_primed','color1hot_purple','color1hot_red','color1hot_sand','color1hot_silver','color1hot_slate','color1hot_stainless','color1hot_steel','color1hot_tan','color1hot_taupe','color1hot_teal','color1hot_unfinished','color1hot_walnut','color1hot_white','color1hot_wood','color1hot_yellow']
+# getFeatureRMSEAgainstBaseline(cols)
+# cols=['color_exist','brand_exist']
+# getFeatureRMSEAgainstBaseline(cols)
+# cols=['color_exist','wm_product_description','wm_product_title','wm_product_brand','wm_attr_json']
+# getFeatureRMSEAgainstBaseline(cols)
+# cols=['color_exist','tfidf_product_title','tfidf_product_brand','tfidf_product_description','tfidf_attr_json','tfidf_expanded_product_title','tfidf_expanded_product_brand','tfidf_expanded_product_description','tfidf_expanded_attr_json']
+# getFeatureRMSEAgainstBaseline(cols)
+# cols=['color_exist','doc2vec_product_title','doc2vec_product_brand','doc2vec_product_description','doc2vec_attr_json','doc2vec_expanded_product_title','doc2vec_expanded_product_brand','doc2vec_expanded_product_description','doc2vec_expanded_attr_json']
+# getFeatureRMSEAgainstBaseline(cols)
+# cols=['color_exist','bm25','bm25expandedquery','bm25description','bm25title','bm25brand']
+# getFeatureRMSEAgainstBaseline(cols)
+# cols=['color_exist','len_product_title']
+# getFeatureRMSEAgainstBaseline(cols)
+# cols=['color_exist','len_product_description']
+# getFeatureRMSEAgainstBaseline(cols)
+# cols=['color_exist','len_brand']
+# getFeatureRMSEAgainstBaseline(cols)
+# cols=['color_exist','len_search_term']
+# getFeatureRMSEAgainstBaseline(cols)
+# cols=['color_exist','sense2vec_all_simscore','sense2vec_keeptag_simscore','sense2vec_uidfact_all_simscore','sense2vec_uidfact_keeptag_simscore','sense2vec_all_attr_simscore','sense2vec_keeptag_attr_simscore','sense2vec_uidfact_all_attr_simscore','sense2vec_uidfact_keeptag_attr_simscore']
+# getFeatureRMSEAgainstBaseline(cols)
+# cols=['color_exist','product_uid_threshold']
+# getFeatureRMSEAgainstBaseline(cols)
+# cols=['color_exist','noun_overlap_counts','noun_uniq_overlap_counts','noun_overlap_ratio']
+# getFeatureRMSEAgainstBaseline(cols)
+
+
+if __name__ == "__main__":
+    # print("Should not print")
+    utility=Utility()
+    utility.startTimeTrack()
+    # This part skips the feature training and simply use it.
+
+    # print("Reading features_full_plusnouns set")
+    # all_df=pd.read_csv('../data/features_full_plusnouns_pluspuidthresh.csv')
+
+    print("Reading features_doc2vec_sense2vec_pmi_20170418 set")
+    all_df=pd.read_csv('../data/features_doc2vec_sense2vec_pmi_20170418.csv', low_memory=True)
+    print("Completed: Reading features_doc2vec_sense2vec_pmi_20170418 set")
     feature_train_df = all_df[:74067]
-    # Must drop these columns for OrdinalRegression
-    feature_train_df.drop('id', axis=1, inplace=True)
-    feature_train_df.drop('search_term', axis=1, inplace=True)
-    feature_train_df.drop('product_uid', axis=1, inplace=True)
-    feature_train_df.drop('relevance', axis=1, inplace=True)
-    feature_train_df.drop('product_idx', axis=1, inplace=True)
-    feature_train_df.drop('Word2VecQueryExpansion', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_search_term_vector', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_product_title_vector', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_product_brand_vector', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_product_description_vector', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_attr_json_vector', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_Word2VecQueryExpansion_vector', axis=1, inplace=True)
+
+    # feature_train_df.drop('doc2vec_search_term_vector', axis=1, inplace=True)
+    # feature_train_df.drop('doc2vec_product_title_vector', axis=1, inplace=True)
+    # feature_train_df.drop('doc2vec_product_brand_vector', axis=1, inplace=True)
+    # feature_train_df.drop('doc2vec_product_description_vector', axis=1, inplace=True)
+    # feature_train_df.drop('doc2vec_attr_json_vector', axis=1, inplace=True)
+    # feature_train_df.drop('doc2vec_Word2VecQueryExpansion_vector', axis=1, inplace=True)
     feature_train_df.drop('wm_product_brand', axis=1, inplace=True)
-
-
-
 
     feature_test_df = all_df[74067:]
     feature_test_df.drop('relevance', axis=1, inplace=True)
@@ -472,143 +436,11 @@ def getFeatureRMSEAgainstBaseline():
     # feature_train_df.drop('wm_product_description', axis=1, inplace=True)
     # feature_train_df.drop('wm_product_title', axis=1, inplace=True)
     # feature_train_df.drop('wm_attr_json', axis=1, inplace=True)
-
     # feature_train_df.drop('len_product_title', axis=1, inplace=True)
     # feature_train_df.drop('len_product_description', axis=1, inplace=True)
     # feature_train_df.drop('len_brand', axis=1, inplace=True)
     # feature_train_df.drop('len_search_term', axis=1, inplace=True)
     # feature_train_df.drop('color_exist', axis=1, inplace=True)
-    feature_train_df.drop('brand_exist', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_almond', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_aluminum', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_beige', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_bisque', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_biscuit', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_black', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_blue', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_bone', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_brass', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_bronze', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_brown', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_cedar', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_charcoal', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_cherry', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_chestnut', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_chrome', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_clear', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_color', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_concrete', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_copper', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_cream', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_daylight', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_espresso', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_gold', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_gray', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_green', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_grey', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_ivory', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_java', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_linen', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_mahogany', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_metallic', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_mocha', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_multi', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_natural', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_nickel', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_oak', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_orange', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_pewter', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_pink', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_platinum', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_primed', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_purple', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_red', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_sand', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_silver', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_slate', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_stainless', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_steel', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_tan', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_teal', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_unfinished', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_walnut', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_white', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_wood', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_yellow', axis=1, inplace=True)
-
-
-    # Run personal models from this point onward
-    # runOrdinalRegressionRankerLAD(all_df, None)
-    # runOrdinalRegressionRankerOrdRidgeGridSearch(all_df, None)
-    # runFacMachineRanker(all_df, None)
-    # orModel=runOrdinalRegressionRankerOrdRidge(feature_train_df, None)
-    # runLogisticRegressionRanker(all_df, None)
-    # runOrdinalRegressionRankerLogit(all_df, None)
-    # runOrdinalRegressionRankerLogat(all_df, None)
-
-    print("####  Running: OrdinalRegression ordridge training ####")
-    # dp=DataPreprocessing()
-    print("feature_train_df:",list(feature_train_df))
-    # trainDF,validateDF=dp.generateValidationSet(train_df)
-    orModel = OrdinalRegressionRanker('ordridge')
-    orModel.train(feature_train_df, None)
-    # orModel.gridSearch(feature_train_df, None)
-    print("####  Completed: OrdinalRegression ordridge training ####")
-    utility.checkpointTimeTrack()
-
-
-    print("Reading feature set")
-    all_df=pd.read_csv('../data/features_full.csv')
-    feature_train_df = all_df[:74067]
-    # Must drop these columns for OrdinalRegression
-    feature_train_df.drop('id', axis=1, inplace=True)
-    feature_train_df.drop('search_term', axis=1, inplace=True)
-    feature_train_df.drop('product_uid', axis=1, inplace=True)
-    feature_train_df.drop('relevance', axis=1, inplace=True)
-    feature_train_df.drop('product_idx', axis=1, inplace=True)
-    feature_train_df.drop('Word2VecQueryExpansion', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_search_term_vector', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_product_title_vector', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_product_brand_vector', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_product_description_vector', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_attr_json_vector', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_Word2VecQueryExpansion_vector', axis=1, inplace=True)
-    feature_train_df.drop('wm_product_brand', axis=1, inplace=True)
-
-
-
-
-    feature_test_df = all_df[74067:]
-    feature_test_df.drop('relevance', axis=1, inplace=True)
-    utility.checkpointTimeTrack()
-    #Featuers to play with.
-    # feature_train_df.drop('tfidf_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_product_brand', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_attr_json', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_expanded_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_expanded_product_brand', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_expanded_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_expanded_attr_json', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_product_brand', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_attr_json', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_expanded_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_expanded_product_brand', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_expanded_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_expanded_attr_json', axis=1, inplace=True)
-    # feature_train_df.drop('bm25', axis=1, inplace=True)
-    # feature_train_df.drop('bm25expandedquery', axis=1, inplace=True)
-    # feature_train_df.drop('wm_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('wm_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('wm_attr_json', axis=1, inplace=True)
-
-    # feature_train_df.drop('len_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('len_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('len_brand', axis=1, inplace=True)
-    # feature_train_df.drop('len_search_term', axis=1, inplace=True)
-    feature_train_df.drop('color_exist', axis=1, inplace=True)
     # feature_train_df.drop('brand_exist', axis=1, inplace=True)
     # feature_train_df.drop('color1hot_almond', axis=1, inplace=True)
     # feature_train_df.drop('color1hot_aluminum', axis=1, inplace=True)
@@ -676,174 +508,52 @@ def getFeatureRMSEAgainstBaseline():
     # runLogisticRegressionRanker(all_df, None)
     # runOrdinalRegressionRankerLogit(all_df, None)
     # runOrdinalRegressionRankerLogat(all_df, None)
-
+    #
     print("####  Running: OrdinalRegression ordridge training ####")
     # dp=DataPreprocessing()
     print("feature_train_df:",list(feature_train_df))
     # trainDF,validateDF=dp.generateValidationSet(train_df)
     orModel = OrdinalRegressionRanker('ordridge')
     orModel.train(feature_train_df, None)
+    orModel.validate(feature_train_df, 'ordinal_train.csv')
     # orModel.gridSearch(feature_train_df, None)
     print("####  Completed: OrdinalRegression ordridge training ####")
     utility.checkpointTimeTrack()
 
-    print("Reading feature set")
-    all_df=pd.read_csv('../data/features_full.csv')
-    feature_train_df = all_df[:74067]
-    # Must drop these columns for OrdinalRegression
-    feature_train_df.drop('id', axis=1, inplace=True)
-    feature_train_df.drop('search_term', axis=1, inplace=True)
-    feature_train_df.drop('product_uid', axis=1, inplace=True)
-    feature_train_df.drop('relevance', axis=1, inplace=True)
-    feature_train_df.drop('product_idx', axis=1, inplace=True)
-    feature_train_df.drop('Word2VecQueryExpansion', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_search_term_vector', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_product_title_vector', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_product_brand_vector', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_product_description_vector', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_attr_json_vector', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_Word2VecQueryExpansion_vector', axis=1, inplace=True)
-    feature_train_df.drop('wm_product_brand', axis=1, inplace=True)
 
 
 
-
-    feature_test_df = all_df[74067:]
-    feature_test_df.drop('relevance', axis=1, inplace=True)
-    utility.checkpointTimeTrack()
-    #Featuers to play with.
-    # feature_train_df.drop('tfidf_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_product_brand', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_attr_json', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_expanded_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_expanded_product_brand', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_expanded_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_expanded_attr_json', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_product_brand', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_attr_json', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_expanded_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_expanded_product_brand', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_expanded_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_expanded_attr_json', axis=1, inplace=True)
-    feature_train_df.drop('bm25', axis=1, inplace=True)
-    feature_train_df.drop('bm25expandedquery', axis=1, inplace=True)
-    # feature_train_df.drop('wm_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('wm_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('wm_attr_json', axis=1, inplace=True)
-
-    # feature_train_df.drop('len_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('len_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('len_brand', axis=1, inplace=True)
-    # feature_train_df.drop('len_search_term', axis=1, inplace=True)
-    feature_train_df.drop('color_exist', axis=1, inplace=True)
-    feature_train_df.drop('brand_exist', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_almond', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_aluminum', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_beige', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_bisque', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_biscuit', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_black', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_blue', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_bone', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_brass', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_bronze', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_brown', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_cedar', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_charcoal', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_cherry', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_chestnut', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_chrome', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_clear', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_color', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_concrete', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_copper', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_cream', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_daylight', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_espresso', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_gold', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_gray', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_green', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_grey', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_ivory', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_java', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_linen', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_mahogany', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_metallic', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_mocha', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_multi', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_natural', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_nickel', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_oak', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_orange', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_pewter', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_pink', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_platinum', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_primed', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_purple', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_red', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_sand', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_silver', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_slate', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_stainless', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_steel', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_tan', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_teal', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_unfinished', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_walnut', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_white', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_wood', axis=1, inplace=True)
-    # feature_train_df.drop('color1hot_yellow', axis=1, inplace=True)
-
-
-    # Run personal models from this point onward
-    # runOrdinalRegressionRankerLAD(all_df, None)
-    # runOrdinalRegressionRankerOrdRidgeGridSearch(all_df, None)
-    # runFacMachineRanker(all_df, None)
-    # orModel=runOrdinalRegressionRankerOrdRidge(feature_train_df, None)
-    # runLogisticRegressionRanker(all_df, None)
-    # runOrdinalRegressionRankerLogit(all_df, None)
-    # runOrdinalRegressionRankerLogat(all_df, None)
-
-    print("####  Running: OrdinalRegression ordridge training ####")
-    # dp=DataPreprocessing()
-    print("feature_train_df:",list(feature_train_df))
-    # trainDF,validateDF=dp.generateValidationSet(train_df)
-    orModel = OrdinalRegressionRanker('ordridge')
-    orModel.train(feature_train_df, None)
-    # orModel.gridSearch(feature_train_df, None)
-    print("####  Completed: OrdinalRegression ordridge training ####")
-    utility.checkpointTimeTrack()
-
-    # #Validation/Test set
-    # soln_filename = '../data/solution.csv'
-    # soln_df = pd.read_csv(soln_filename, delimiter=',', low_memory=False, encoding="ISO-8859-1")
+    #Validation/Test set
+    print("####  OrdinalRegression ordridge validating public/private sets ####")
+    print("Loading solution")
+    soln_filename = '../data/solution.csv'
+    print("Completed Loading solution")
+    soln_df = pd.read_csv(soln_filename, delimiter=',', low_memory=True, encoding="ISO-8859-1")
     # print(soln_df.info())
-    # dp = DataPreprocessing()
-    # # df_a.merge(df_b, on='mukey', how='left')
-    # test_private_df = dp.getGoldTestSet(feature_test_df, soln_df,
-    #                                     testsetoption='Private')  # ,savepath='../data/test_private_gold.csv')
-    # test_public_df = dp.getGoldTestSet(feature_test_df, soln_df,
-    #                                    testsetoption='Public')  # savepath='../data/test_public_gold.csv')
-    #
-    # test_private_df=dp.transformLabels(test_private_df)
-    # test_public_df = dp.transformLabels(test_public_df)
-    #
+    dp = DataPreprocessing()
+    # df_a.merge(df_b, on='mukey', how='left')
+    test_private_df = dp.getGoldTestSet(feature_test_df, soln_df,
+                                        testsetoption='Private')  # ,savepath='../data/test_private_gold.csv')
+    test_public_df = dp.getGoldTestSet(feature_test_df, soln_df,
+                                       testsetoption='Public')  # savepath='../data/test_public_gold.csv')
+
+    test_private_df=dp.transformLabels(test_private_df)
+    test_public_df = dp.transformLabels(test_public_df)
+
     # test_private_df.drop('id', axis=1, inplace=True)
     # test_private_df.drop('search_term', axis=1, inplace=True)
     # test_private_df.drop('product_uid', axis=1, inplace=True)
     # test_private_df.drop('relevance', axis=1, inplace=True)
     # test_private_df.drop('product_idx', axis=1, inplace=True)
     # test_private_df.drop('Word2VecQueryExpansion', axis=1, inplace=True)
+
     # test_private_df.drop('doc2vec_search_term_vector', axis=1, inplace=True)
     # test_private_df.drop('doc2vec_product_title_vector', axis=1, inplace=True)
     # test_private_df.drop('doc2vec_product_brand_vector', axis=1, inplace=True)
     # test_private_df.drop('doc2vec_product_description_vector', axis=1, inplace=True)
     # test_private_df.drop('doc2vec_attr_json_vector', axis=1, inplace=True)
     # test_private_df.drop('doc2vec_Word2VecQueryExpansion_vector', axis=1, inplace=True)
-    #
+    test_private_df.drop('wm_product_brand', axis=1, inplace=True)
     # test_public_df.drop('id', axis=1, inplace=True)
     # test_public_df.drop('search_term', axis=1, inplace=True)
     # test_public_df.drop('product_uid', axis=1, inplace=True)
@@ -856,457 +566,18 @@ def getFeatureRMSEAgainstBaseline():
     # test_public_df.drop('doc2vec_product_description_vector', axis=1, inplace=True)
     # test_public_df.drop('doc2vec_attr_json_vector', axis=1, inplace=True)
     # test_public_df.drop('doc2vec_Word2VecQueryExpansion_vector', axis=1, inplace=True)
-    #
-    # print(test_public_df)
-    # print("Validating public testset")
-    # orModel.validate(test_public_df)
-    #
-    # print("Validating private testset")
-    # orModel.validate(test_private_df)
-
-
-
-    # jax cut here
-    print("Reading feature set")
-    all_df = pd.read_csv('../data/features_full.csv')
-    feature_train_df = all_df[:74067]
-    # Must drop these columns for OrdinalRegression
-    feature_train_df.drop('id', axis=1, inplace=True)
-    feature_train_df.drop('search_term', axis=1, inplace=True)
-    feature_train_df.drop('product_uid', axis=1, inplace=True)
-    feature_train_df.drop('relevance', axis=1, inplace=True)
-    feature_train_df.drop('product_idx', axis=1, inplace=True)
-    feature_train_df.drop('Word2VecQueryExpansion', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_search_term_vector', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_product_title_vector', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_product_brand_vector', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_product_description_vector', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_attr_json_vector', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_Word2VecQueryExpansion_vector', axis=1, inplace=True)
-    feature_train_df.drop('wm_product_brand', axis=1, inplace=True)
-
-    feature_test_df = all_df[74067:]
-    feature_test_df.drop('relevance', axis=1, inplace=True)
+    test_public_df.drop('wm_product_brand', axis=1, inplace=True)
     utility.checkpointTimeTrack()
-    # Featuers to play with.
-    # feature_train_df.drop('tfidf_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_product_brand', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_attr_json', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_expanded_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_expanded_product_brand', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_expanded_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_expanded_attr_json', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_product_title', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_product_brand', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_product_description', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_attr_json', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_expanded_product_title', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_expanded_product_brand', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_expanded_product_description', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_expanded_attr_json', axis=1, inplace=True)
-    feature_train_df.drop('bm25', axis=1, inplace=True)
-    feature_train_df.drop('bm25expandedquery', axis=1, inplace=True)
-    feature_train_df.drop('wm_product_description', axis=1, inplace=True)
-    feature_train_df.drop('wm_product_title', axis=1, inplace=True)
-    feature_train_df.drop('wm_attr_json', axis=1, inplace=True)
-
-    # feature_train_df.drop('len_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('len_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('len_brand', axis=1, inplace=True)
-    # feature_train_df.drop('len_search_term', axis=1, inplace=True)
-    feature_train_df.drop('color_exist', axis=1, inplace=True)
-    feature_train_df.drop('brand_exist', axis=1, inplace=True)
-
-    print("####  Running: OrdinalRegression ordridge training ####")
-    # dp=DataPreprocessing()
-    print("feature_train_df:", list(feature_train_df))
-    # trainDF,validateDF=dp.generateValidationSet(train_df)
-    orModel = OrdinalRegressionRanker('ordridge')
-    orModel.train(feature_train_df, None)
-    # orModel.gridSearch(feature_train_df, None)
-    print("####  Completed: OrdinalRegression ordridge training ####")
+    print("test_public_df:\n",list(test_public_df))
+    print("Validating public testset")
+    orModel.validate(test_public_df,'ordinal_public.csv')
     utility.checkpointTimeTrack()
-
-    print("Reading feature set")
-    all_df = pd.read_csv('../data/features_full.csv')
-    feature_train_df = all_df[:74067]
-    # Must drop these columns for OrdinalRegression
-    feature_train_df.drop('id', axis=1, inplace=True)
-    feature_train_df.drop('search_term', axis=1, inplace=True)
-    feature_train_df.drop('product_uid', axis=1, inplace=True)
-    feature_train_df.drop('relevance', axis=1, inplace=True)
-    feature_train_df.drop('product_idx', axis=1, inplace=True)
-    feature_train_df.drop('Word2VecQueryExpansion', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_search_term_vector', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_product_title_vector', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_product_brand_vector', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_product_description_vector', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_attr_json_vector', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_Word2VecQueryExpansion_vector', axis=1, inplace=True)
-    feature_train_df.drop('wm_product_brand', axis=1, inplace=True)
-
-    feature_test_df = all_df[74067:]
-    feature_test_df.drop('relevance', axis=1, inplace=True)
-    utility.checkpointTimeTrack()
-    # Featuers to play with.
-    feature_train_df.drop('tfidf_product_title', axis=1, inplace=True)
-    feature_train_df.drop('tfidf_product_brand', axis=1, inplace=True)
-    feature_train_df.drop('tfidf_product_description', axis=1, inplace=True)
-    feature_train_df.drop('tfidf_attr_json', axis=1, inplace=True)
-    feature_train_df.drop('tfidf_expanded_product_title', axis=1, inplace=True)
-    feature_train_df.drop('tfidf_expanded_product_brand', axis=1, inplace=True)
-    feature_train_df.drop('tfidf_expanded_product_description', axis=1, inplace=True)
-    feature_train_df.drop('tfidf_expanded_attr_json', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_product_brand', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_attr_json', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_expanded_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_expanded_product_brand', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_expanded_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_expanded_attr_json', axis=1, inplace=True)
-    feature_train_df.drop('bm25', axis=1, inplace=True)
-    feature_train_df.drop('bm25expandedquery', axis=1, inplace=True)
-    feature_train_df.drop('wm_product_description', axis=1, inplace=True)
-    feature_train_df.drop('wm_product_title', axis=1, inplace=True)
-    feature_train_df.drop('wm_attr_json', axis=1, inplace=True)
-
-    # feature_train_df.drop('len_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('len_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('len_brand', axis=1, inplace=True)
-    # feature_train_df.drop('len_search_term', axis=1, inplace=True)
-    feature_train_df.drop('color_exist', axis=1, inplace=True)
-    feature_train_df.drop('brand_exist', axis=1, inplace=True)
-
-    print("####  Running: OrdinalRegression ordridge training ####")
-    # dp=DataPreprocessing()
-    print("feature_train_df:", list(feature_train_df))
-    # trainDF,validateDF=dp.generateValidationSet(train_df)
-    orModel = OrdinalRegressionRanker('ordridge')
-    orModel.train(feature_train_df, None)
-    # orModel.gridSearch(feature_train_df, None)
-    print("####  Completed: OrdinalRegression ordridge training ####")
-    utility.checkpointTimeTrack()
-
-    print("Reading feature set")
-    all_df = pd.read_csv('../data/features_full.csv')
-    feature_train_df = all_df[:74067]
-    # Must drop these columns for OrdinalRegression
-    feature_train_df.drop('id', axis=1, inplace=True)
-    feature_train_df.drop('search_term', axis=1, inplace=True)
-    feature_train_df.drop('product_uid', axis=1, inplace=True)
-    feature_train_df.drop('relevance', axis=1, inplace=True)
-    feature_train_df.drop('product_idx', axis=1, inplace=True)
-    feature_train_df.drop('Word2VecQueryExpansion', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_search_term_vector', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_product_title_vector', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_product_brand_vector', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_product_description_vector', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_attr_json_vector', axis=1, inplace=True)
-    feature_train_df.drop('doc2vec_Word2VecQueryExpansion_vector', axis=1, inplace=True)
-    feature_train_df.drop('wm_product_brand', axis=1, inplace=True)
-
-    feature_test_df = all_df[74067:]
-    feature_test_df.drop('relevance', axis=1, inplace=True)
-    utility.checkpointTimeTrack()
-    # Featuers to play with.
-    # feature_train_df.drop('tfidf_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_product_brand', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_attr_json', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_expanded_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_expanded_product_brand', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_expanded_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_expanded_attr_json', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_product_brand', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_attr_json', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_expanded_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_expanded_product_brand', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_expanded_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_expanded_attr_json', axis=1, inplace=True)
-    feature_train_df.drop('bm25', axis=1, inplace=True)
-    feature_train_df.drop('bm25expandedquery', axis=1, inplace=True)
-    # feature_train_df.drop('wm_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('wm_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('wm_attr_json', axis=1, inplace=True)
-
-    # feature_train_df.drop('len_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('len_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('len_brand', axis=1, inplace=True)
-    # feature_train_df.drop('len_search_term', axis=1, inplace=True)
-    feature_train_df.drop('color_exist', axis=1, inplace=True)
-    feature_train_df.drop('brand_exist', axis=1, inplace=True)
-
-    print("####  Running: OrdinalRegression ordridge training ####")
-    # dp=DataPreprocessing()
-    print("feature_train_df:", list(feature_train_df))
-    # trainDF,validateDF=dp.generateValidationSet(train_df)
-    orModel = OrdinalRegressionRanker('ordridge')
-    orModel.train(feature_train_df, None)
-    # orModel.gridSearch(feature_train_df, None)
-    print("####  Completed: OrdinalRegression ordridge training ####")
+    print("test_private_df:\n",list(test_private_df))
+    print("Validating private testset")
+    orModel.validate(test_private_df,'ordinal_private.csv')
     utility.checkpointTimeTrack()
 
 
-if __name__ == "__main__":
-
-    utility=Utility()
-    utility.startTimeTrack()
-    #This part skips the feature training and simply use it.
-
-    # print("Reading feature set")
-    # all_df=pd.read_csv('../data/features_full.csv')
-    # feature_train_df = all_df[:74067]
-    # # Must drop these columns for OrdinalRegression
-    # feature_train_df.drop('id', axis=1, inplace=True)
-    # feature_train_df.drop('search_term', axis=1, inplace=True)
-    # feature_train_df.drop('product_uid', axis=1, inplace=True)
-    # feature_train_df.drop('relevance', axis=1, inplace=True)
-    # feature_train_df.drop('product_idx', axis=1, inplace=True)
-    # feature_train_df.drop('Word2VecQueryExpansion', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_search_term_vector', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_product_title_vector', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_product_brand_vector', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_product_description_vector', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_attr_json_vector', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_Word2VecQueryExpansion_vector', axis=1, inplace=True)
-    # feature_train_df.drop('wm_product_brand', axis=1, inplace=True)
-    #
-    #
-    #
-    #
-    # feature_test_df = all_df[74067:]
-    # feature_test_df.drop('relevance', axis=1, inplace=True)
-    # utility.checkpointTimeTrack()
-    # #Featuers to play with.
-    # feature_train_df.drop('tfidf_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_product_brand', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_attr_json', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_expanded_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_expanded_product_brand', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_expanded_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_expanded_attr_json', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_product_brand', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_attr_json', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_expanded_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_expanded_product_brand', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_expanded_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_expanded_attr_json', axis=1, inplace=True)
-    # # feature_train_df.drop('bm25', axis=1, inplace=True)
-    # # feature_train_df.drop('bm25expandedquery', axis=1, inplace=True)
-    # feature_train_df.drop('wm_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('wm_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('wm_attr_json', axis=1, inplace=True)
-    #
-    # # feature_train_df.drop('len_product_title', axis=1, inplace=True)
-    # # feature_train_df.drop('len_product_description', axis=1, inplace=True)
-    # # feature_train_df.drop('len_brand', axis=1, inplace=True)
-    # # feature_train_df.drop('len_search_term', axis=1, inplace=True)
-    # feature_train_df.drop('color_exist', axis=1, inplace=True)
-    # feature_train_df.drop('brand_exist', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_almond', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_aluminum', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_beige', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_bisque', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_biscuit', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_black', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_blue', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_bone', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_brass', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_bronze', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_brown', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_cedar', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_charcoal', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_cherry', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_chestnut', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_chrome', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_clear', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_color', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_concrete', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_copper', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_cream', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_daylight', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_espresso', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_gold', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_gray', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_green', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_grey', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_ivory', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_java', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_linen', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_mahogany', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_metallic', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_mocha', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_multi', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_natural', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_nickel', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_oak', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_orange', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_pewter', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_pink', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_platinum', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_primed', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_purple', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_red', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_sand', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_silver', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_slate', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_stainless', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_steel', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_tan', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_teal', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_unfinished', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_walnut', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_white', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_wood', axis=1, inplace=True)
-    # # feature_train_df.drop('color1hot_yellow', axis=1, inplace=True)
-    #
-    #
-    # # Run personal models from this point onward
-    # # runOrdinalRegressionRankerLAD(all_df, None)
-    # # runOrdinalRegressionRankerOrdRidgeGridSearch(all_df, None)
-    # # runFacMachineRanker(all_df, None)
-    # # orModel=runOrdinalRegressionRankerOrdRidge(feature_train_df, None)
-    # # runLogisticRegressionRanker(all_df, None)
-    # # runOrdinalRegressionRankerLogit(all_df, None)
-    # # runOrdinalRegressionRankerLogat(all_df, None)
-    #
-    # print("####  Running: OrdinalRegression ordridge training ####")
-    # # dp=DataPreprocessing()
-    # print("feature_train_df:",list(feature_train_df))
-    # # trainDF,validateDF=dp.generateValidationSet(train_df)
-    # orModel = OrdinalRegressionRanker('ordridge')
-    # orModel.train(feature_train_df, None)
-    # # orModel.gridSearch(feature_train_df, None)
-    # print("####  Completed: OrdinalRegression ordridge training ####")
-    # utility.checkpointTimeTrack()
-    #
-    # # #Validation/Test set
-    # # soln_filename = '../data/solution.csv'
-    # # soln_df = pd.read_csv(soln_filename, delimiter=',', low_memory=False, encoding="ISO-8859-1")
-    # # print(soln_df.info())
-    # # dp = DataPreprocessing()
-    # # # df_a.merge(df_b, on='mukey', how='left')
-    # # test_private_df = dp.getGoldTestSet(feature_test_df, soln_df,
-    # #                                     testsetoption='Private')  # ,savepath='../data/test_private_gold.csv')
-    # # test_public_df = dp.getGoldTestSet(feature_test_df, soln_df,
-    # #                                    testsetoption='Public')  # savepath='../data/test_public_gold.csv')
-    # #
-    # # test_private_df=dp.transformLabels(test_private_df)
-    # # test_public_df = dp.transformLabels(test_public_df)
-    # #
-    # # test_private_df.drop('id', axis=1, inplace=True)
-    # # test_private_df.drop('search_term', axis=1, inplace=True)
-    # # test_private_df.drop('product_uid', axis=1, inplace=True)
-    # # test_private_df.drop('relevance', axis=1, inplace=True)
-    # # test_private_df.drop('product_idx', axis=1, inplace=True)
-    # # test_private_df.drop('Word2VecQueryExpansion', axis=1, inplace=True)
-    # # test_private_df.drop('doc2vec_search_term_vector', axis=1, inplace=True)
-    # # test_private_df.drop('doc2vec_product_title_vector', axis=1, inplace=True)
-    # # test_private_df.drop('doc2vec_product_brand_vector', axis=1, inplace=True)
-    # # test_private_df.drop('doc2vec_product_description_vector', axis=1, inplace=True)
-    # # test_private_df.drop('doc2vec_attr_json_vector', axis=1, inplace=True)
-    # # test_private_df.drop('doc2vec_Word2VecQueryExpansion_vector', axis=1, inplace=True)
-    # #
-    # # test_public_df.drop('id', axis=1, inplace=True)
-    # # test_public_df.drop('search_term', axis=1, inplace=True)
-    # # test_public_df.drop('product_uid', axis=1, inplace=True)
-    # # test_public_df.drop('relevance', axis=1, inplace=True)
-    # # test_public_df.drop('product_idx', axis=1, inplace=True)
-    # # test_public_df.drop('Word2VecQueryExpansion', axis=1, inplace=True)
-    # # test_public_df.drop('doc2vec_search_term_vector', axis=1, inplace=True)
-    # # test_public_df.drop('doc2vec_product_title_vector', axis=1, inplace=True)
-    # # test_public_df.drop('doc2vec_product_brand_vector', axis=1, inplace=True)
-    # # test_public_df.drop('doc2vec_product_description_vector', axis=1, inplace=True)
-    # # test_public_df.drop('doc2vec_attr_json_vector', axis=1, inplace=True)
-    # # test_public_df.drop('doc2vec_Word2VecQueryExpansion_vector', axis=1, inplace=True)
-    # #
-    # # print(test_public_df)
-    # # print("Validating public testset")
-    # # orModel.validate(test_public_df)
-    # #
-    # # print("Validating private testset")
-    # # orModel.validate(test_private_df)
-
-
-
-#jax cut here
-    print("Reading feature set")
-    all_df=pd.read_csv('../data/featuresBM25.csv')
-    # feature_train_df = all_df[:74067]
-    feature_train_df = all_df
-    # Must drop these columns for OrdinalRegression
-    # feature_train_df.drop('id', axis=1, inplace=True)
-    # feature_train_df.drop('search_term', axis=1, inplace=True)
-    # feature_train_df.drop('product_uid', axis=1, inplace=True)
-    # feature_train_df.drop('relevance', axis=1, inplace=True)
-    # feature_train_df.drop('product_idx', axis=1, inplace=True)
-    # feature_train_df.drop('Word2VecQueryExpansion', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_search_term_vector', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_product_title_vector', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_product_brand_vector', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_product_description_vector', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_attr_json_vector', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_Word2VecQueryExpansion_vector', axis=1, inplace=True)
-    # feature_train_df.drop('wm_product_brand', axis=1, inplace=True)
-
-
-
-
-    # feature_test_df = all_df[74067:]
-    # feature_test_df.drop('relevance', axis=1, inplace=True)
-    # utility.checkpointTimeTrack()
-    #Featuers to play with.
-    # feature_train_df.drop('tfidf_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_product_brand', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_attr_json', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_expanded_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_expanded_product_brand', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_expanded_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('tfidf_expanded_attr_json', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_product_brand', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_attr_json', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_expanded_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_expanded_product_brand', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_expanded_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('doc2vec_expanded_attr_json', axis=1, inplace=True)
-    # feature_train_df.drop('bm25', axis=1, inplace=True)
-    # feature_train_df.drop('bm25expandedquery', axis=1, inplace=True)
-    # feature_train_df.drop('bm25description', axis=1, inplace=True)
-    # feature_train_df.drop('bm25title', axis=1, inplace=True)
-    # feature_train_df.drop('bm25brand', axis=1, inplace=True)
-
-    # feature_train_df.drop('wm_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('wm_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('wm_attr_json', axis=1, inplace=True)
-
-    # feature_train_df.drop('len_product_title', axis=1, inplace=True)
-    # feature_train_df.drop('len_product_description', axis=1, inplace=True)
-    # feature_train_df.drop('len_brand', axis=1, inplace=True)
-    # feature_train_df.drop('len_search_term', axis=1, inplace=True)
-    # feature_train_df.drop('color_exist', axis=1, inplace=True)
-    # feature_train_df.drop('brand_exist', axis=1, inplace=True)
-
-
-    print("####  Running: OrdinalRegression ordridge training ####")
-    # dp=DataPreprocessing()
-    print("feature_train_df:",list(feature_train_df))
-    # trainDF,validateDF=dp.generateValidationSet(train_df)
-    orModel = OrdinalRegressionRanker('ordridge')
-    orModel.train(feature_train_df, None)
-    orModel.validate(feature_train_df)
-    # orModel.gridSearch(feature_train_df, None)
-    print("####  Completed: OrdinalRegression ordridge training ####")
-    utility.checkpointTimeTrack()
 
 
 
