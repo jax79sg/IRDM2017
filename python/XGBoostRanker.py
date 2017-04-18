@@ -50,17 +50,25 @@ class XGBoostRanker():
                 'sense2vec_keeptag_simscore',
                 'sense2vec_uidfact_all_simscore',
                 'sense2vec_uidfact_keeptag_simscore',
+                'sense2vec_all_attr_simscore',
+                'sense2vec_keeptag_attr_simscore',
+                'sense2vec_uidfact_all_attr_simscore',
+                'sense2vec_uidfact_keeptag_attr_simscore',
+                'noun_overlap_counts',
+                'noun_uniq_overlap_counts',
+                'noun_overlap_ratios',
                 'product_uid_threshold',
+                'pmi',
             ]
 
-        # columnName = feature_train_df.columns
-        #
-        # for name in columnName:
-        #     if name.find('color1hot') != -1:
-        #         # print("name: " + name)
-        #         self.x_parameter.append(name)
+        columnName = feature_train_df.columns
 
-        # print(self.x_parameter)
+        for name in columnName:
+            if name.find('color1hot') != -1:
+                # print("name: " + name)
+                self.x_parameter.append(name)
+
+        # print("x_parameter: ", self.x_parameter)
 
     def train_classifier(self, trainDF):
         y_train = trainDF[self.y_parameter]
@@ -103,7 +111,7 @@ class XGBoostRanker():
 
         print("Train RMSE: ", rmse(y_train, y_pred))
 
-        plot_importance(self._model, max_num_features=15)
+        # plot_importance(self._model, max_num_features=15)
         # plt.show()
 
     def gridSearch_Regressor(self, trainDF):
@@ -114,17 +122,17 @@ class XGBoostRanker():
 
         ## Setup Grid Search parameter
         param_grid = {
-                      # 'max_depth': [3, 4, 5, 6, 7],
+                      # 'max_depth': [5, 6, 7, 8, 9, 10],
                       # 'min_child_weight': [1, 2, 3, 4],
-                      # 'gamma': [0.6, 0.7, 0.8, 0.9, 1.0],
+                      'gamma': [0.6, 0.7, 0.8, 0.9, 1.0],
                       # 'subsample': [0.6, 0.7, 0.8, 0.9, 1.0],
                       # 'colsample_bytree': [0.6, 0.7, 0.8, 0.9, 1.0],
                       # 'reg_alpha': [0.0008, 0.0009],
                       # 'learning_rate': [0.11, 0.1, 0.09],
-                      'n_estimators': [50, 100, 200],
+                      # 'n_estimators': [50, 100, 200],
                       }
 
-        ind_params = {#'n_estimators': 100,
+        ind_params = {'n_estimators': 100,
                       'seed': 0,
                       'objective': 'binary:logistic',
                       'base_score': 0.5,
@@ -135,9 +143,9 @@ class XGBoostRanker():
                       'scale_pos_weight': 1,
                       'silent': True,
                       'learning_rate': 0.1,
-                      'max_depth': 7,
+                      'max_depth': 9,
                       'min_child_weight': 1,
-                      'gamma': 0.9,
+                      # 'gamma': 0.9,
                       'subsample': 0.9,
                       'colsample_bytree': 0.7,
                       'reg_alpha': 0.0009,
@@ -246,7 +254,7 @@ def rmse(y_gold, y_pred):
 
 if __name__ == "__main__":
     reader = HomeDepotReader()
-    feature_df = reader.getBasicDataFrame("../data/features_doc2vec_sense2vec_20170416.csv")
+    feature_df = reader.getBasicDataFrame("../data/features_doc2vec_sense2vec_pmi_20170418.csv")
     # feature_df = reader.getBasicDataFrame("../data/features_doc2vec_dm0_sam8.csv")
     # feature_df = reader.getBasicDataFrame("../data/features_Doc2Vec_retrain.csv")
 
@@ -287,14 +295,14 @@ if __name__ == "__main__":
     result_df = xgb.test_Model(test_private_df)
 
     # gold_df = pd.DataFrame()
-    # gold_df['search_term'] = test_private_df['search_term']
-    # gold_df['product_uid'] = test_private_df['product_uid']
-    # gold_df['relevance_int'] = test_private_df['relevance']
+    # gold_df['search_term'] = test_public_df['search_term']
+    # gold_df['product_uid'] = test_public_df['product_uid']
+    # gold_df['relevance_int'] = test_public_df['relevance']
     # ndcg = NDCG_Eval()
-    # ndcg.computeAvgNDCG(gold_df, result_df)
+    # ndcg.computeAvgNDCG(gold_df, result_df, "../data/ndcg.csv")
     #
-    result_df.pop('product_uid')
-    result_df.pop('search_term')
-    result_df.pop('relevance_int')
-    # print(result_df.columns)
-    HomeDepotCSVWriter().dumpCSV(result_df, "../data/xgboost_private.csv")
+    # result_df.pop('product_uid')
+    # result_df.pop('search_term')
+    # result_df.pop('relevance_int')
+    # # print(result_df.columns)
+    # HomeDepotCSVWriter().dumpCSV(result_df, "../data/xgboost_public.csv")
