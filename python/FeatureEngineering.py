@@ -17,6 +17,7 @@ from nltk.corpus import stopwords
 import nltk
 from AutomaticQueryExpansion import Word2VecQueryExpansion
 import Feature_Word2Vec
+import Feature_PMI
 from Utilities import Utility
 
 class HomeDepotFeature():
@@ -560,6 +561,43 @@ class HomeDepotFeature():
                                       on='product_uid')
             train_query_df['len_search_term'] = train_query_df['search_term'].map(lambda x: len(homedepotTokeniser(x)))
 
+        if features.find("pmi") != -1:
+            print("===========Performing pmi computation....this may take a while")
+            timetracker.startTimeTrack()
+            print(list(product_df))
+            product_df['content'] = product_df['product_title'].map(str) + " " + \
+                                    product_df['product_description'].map(str)
+
+            timetracker.checkpointTimeTrack()
+
+            print("Adding training query for that product id into the content")
+
+            product_df = product_df.reset_index(drop=True)
+            counter = 0
+            for index, product in product_df.iterrows():
+                # print("product:", product)
+                productId = product['product_uid']
+                # print("productId:",productId)
+                df = train_query_df[train_query_df.product_uid == productId]
+                # print("df:",df)
+                searchterms = ""
+                for index, row in df.iterrows():
+                    searchterm = row['search_term']
+                    searchterms = searchterms + " " + searchterm
+
+                newString = product_df.iloc[counter]['content'] + " " + searchterms
+                product_df.set_value(counter, 'content', newString)
+
+                counter = counter + 1
+            timetracker.checkpointTimeTrack()
+
+            # Creating content
+            text = product_df['content'].str.cat(sep=' ')
+            pmiFeature = Feature_PMI.Feature_PMI(text)
+            # print("PMI 'kitchen','cabinet': ", pmiFeature.computePMI('kitchen', 'cabinet'))
+            train_query_df = pmiFeature.computePMIColumn(trainset=train_query_df)
+            # print(list(train_query_df), "\n", train_query_df['pmi'])
+            # train_query_df.filter(items=['id', 'pmi']).to_csv('pmi_features.csv')
 
         print("train_query_df final column:\n", train_query_df.info())
 
@@ -689,7 +727,7 @@ if __name__ == "__main__":
 
     print("Starting Feature Engineering")
     feat = HomeDepotFeature()
-    all_df = feat.getFeature(train_df,features="brand,spelling,nonascii,stopwords,stemming,tfidf,doc2vec,bm25,doclength")
+    all_df = feat.getFeature(train_df,features="brand,nonascii,stopwords,stemming,tfidf,doc2vec,bm25,doclength")
 
     train_df = all_df.iloc[:train_df.shape[0]]
     test_df = all_df.iloc[train_df.shape[0]:]
