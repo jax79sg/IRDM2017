@@ -1,5 +1,9 @@
 
 import datetime
+import seaborn as sns
+import pandas as pd
+import numpy as np
+import time
 
 class Utility():
 
@@ -55,3 +59,46 @@ class Utility():
         print(result)
         return result
         pass
+
+
+    def correlationFeatures(self,dataset):
+        print(list(dataset))
+
+        # dataset=dataset.filter(items=['click', 'weekday', 'hour', 'userid', 'IP', 'region', 'city', 'adexchange', 'domain', 'url', 'urlid', 'slotid', 'slotwidth', 'slotheight', 'slotvisibility', 'slotformat', 'slotprice', 'creative', 'bidprice', 'payprice', 'keypage', 'advertiser', 'os', 'browser'])
+        corr=dataset.corr()
+        print(corr)
+        sns.heatmap(corr,
+                    xticklabels=corr.columns.values,
+                    yticklabels=corr.columns.values)
+        sns.plt.show()
+
+    def artificialFeatureExtension(self,featureDF):
+        def multiply(x,f1='',f2=''):
+            return x[f1]*x[f2]
+
+        listOfFeatures=list(featureDF)
+        noOfFeatures=len(listOfFeatures)
+        i=0
+        while(i<noOfFeatures):
+            subFeatures=noOfFeatures-i
+
+            j = 0
+            while(j<subFeatures):
+                f1=listOfFeatures[i]
+                f2=listOfFeatures[i+1]
+                featureName=str(f1+"_"+f2)
+                print("I is :, ", i, "    No of features: ", subFeatures)
+                print("J is :, ", j, "    No of subfeatures: ", subFeatures)
+                print("Working on features: ", featureName)
+                featureDF[featureName]=featureDF.apply(multiply,axis=1,f1=f1, f2=f2)
+                j=j+1
+                time.sleep(0.5)
+            i=i+1
+        return featureDF
+
+# print("Reading feature list")
+# all_df=pd.read_csv('../data/features_full_plusnouns_pluspuidthresh.csv')
+# feature_train_df = all_df[:74067]
+# featureDF=Utility().artificialFeatureExtension(feature_train_df)
+# featureDF.to_csv('nonlinear_features')
+# print("Created featureDF: ", list(featureDF))
