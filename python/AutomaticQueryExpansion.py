@@ -21,7 +21,7 @@ class Word2VecQueryExpansion():
         """
         Changelog: 
         - 29/03 KS First committed                
-        Return an expanded query based on similarity with pretrain word embeddings
+        Return an expanded query based on similarity with word embeddings (See Feature_Word2Vec)
         :param querywords: The words of original query e.g. "additional space"
         :param maxNoOfAdditionalWords: For each query word, how many words to expand.
         :param confidenceLevel: Min similarity level of expanded word 0 to 1.
