@@ -27,6 +27,7 @@ More ideas of features can be found here https://www.microsoft.com/en-us/researc
     + LMIR.DIR
     + LMIR.JM
     + LDA
+    + PMI (Kah Siong: Done)
 
 + Cosine Similarity (Chun Siong: Done)
 + Doc2Vec (Chun Siong: Done)
