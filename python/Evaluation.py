@@ -45,7 +45,7 @@ class NDCG_Eval():
             - Largest NDCPp represents better ranking
         """
 
-    def computeAvgNDCG(self,goldDF,predictDF):
+    def computeAvgNDCG(self,goldDF,predictDF, filetosave):
         """
         This will handle the NDCG computation based on the dataset format we have.
         :param goldDF: Required columns: search_term, product_uid, relevance_int
