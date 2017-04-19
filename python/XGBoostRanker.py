@@ -19,10 +19,10 @@ class XGBoostRanker():
                 'tfidf_product_brand',
                 'tfidf_product_description',
                 'tfidf_attr_json',
-                'tfidf_expanded_product_title',
-                'tfidf_expanded_product_brand',
-                'tfidf_expanded_product_description',
-                'tfidf_expanded_attr_json',
+                # 'tfidf_expanded_product_title',
+                # 'tfidf_expanded_product_brand',
+                # 'tfidf_expanded_product_description',
+                # 'tfidf_expanded_attr_json',
                 'doc2vec_product_title',
                 'doc2vec_product_brand',
                 'doc2vec_product_description',
@@ -59,6 +59,12 @@ class XGBoostRanker():
                 'noun_overlap_ratios',
                 'product_uid_threshold',
                 'pmi',
+                'common_w_title',
+                'common_w_description',
+                'common_words',
+                'search_ratio',
+                'title_ratio',
+                'desc_ratio',
             ]
 
         columnName = feature_train_df.columns
@@ -254,8 +260,8 @@ def rmse(y_gold, y_pred):
 
 if __name__ == "__main__":
     reader = HomeDepotReader()
-    feature_df = reader.getBasicDataFrame("../data/features_doc2vec_sense2vec_pmi_20170418.csv")
-    # feature_df = reader.getBasicDataFrame("../data/features_doc2vec_dm0_sam8.csv")
+    # feature_df = reader.getBasicDataFrame("../data/features_doc2vec_sense2vec_pmi_20170418.csv")
+    feature_df = reader.getBasicDataFrame("../data/features_final_20170419.csv")
     # feature_df = reader.getBasicDataFrame("../data/features_Doc2Vec_retrain.csv")
 
     # print(feature_df.info())
