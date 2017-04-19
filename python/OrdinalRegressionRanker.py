@@ -398,8 +398,9 @@ if __name__ == "__main__":
     # print("Reading features_full_plusnouns set")
     # all_df=pd.read_csv('../data/features_full_plusnouns_pluspuidthresh.csv')
 
+    myFeatureSetFileReference='../data/features_doc2vec_sense2vec_pmi_20170418.csv'
     print("Reading features_doc2vec_sense2vec_pmi_20170418 set")
-    all_df=pd.read_csv('../data/features_doc2vec_sense2vec_pmi_20170418.csv', low_memory=True)
+    all_df=pd.read_csv(myFeatureSetFileReference, low_memory=True)
     print("Completed: Reading features_doc2vec_sense2vec_pmi_20170418 set")
     feature_train_df = all_df[:74067]
 
