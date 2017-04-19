@@ -1,7 +1,21 @@
 # IRDM2017
 Information Retreival and Data Mining
 
+**Manual:**
+**Generate features:**
+1. Ensure datasets data.original/attributes.csv, data.original/product_descriptions.csv, data.original/test.csv and data.original/train.csv are available.
+1. Set the desired features to generate in desiredFeatures variable of RunMe.py
+2. Run RunMe.py
+3. Generated csv will be located in data/features_full_20170416.csv
 
+**Train and generate results for Ordinal Regression:**
+1. Ensure featureset data/features_doc2vec_sense2vec_pmi_20170418.csv is available.
+2. If using a different featureset, please change file reference in OrdinalRegressionRanker.py (myFeatureSetFileReference variable)
+3. Run OrdinalRegressionRanker.py
+
+
+
+**To-Do list:**
 **Ideas for Data Processing:**
 + Stemming + lower case (Chun Siong: Done)
 + Spelling correction (Chun Siong: Done)
