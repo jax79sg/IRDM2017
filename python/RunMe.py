@@ -146,10 +146,12 @@ if __name__ == "__main__":
     print("attribute_df:", list(attribute_df))
     print("test_query_df:", list(test_query_df))
 
+    desiredFeatures="brand,attribute,spelling,nonascii,stopwords,colorExist,brandExist,wmdistance,stemming,word2vec,Word2VecQueryExpansion,tfidf,tfidf_expandedquery,doc2vec,doc2vec_expandedquery,bm25,bm25expandedquery,bm25description,bm25title,bm25brand,doclength,pmi"
+
     print("Starting Feature Engineering")
     # Mega combine all and generate feature for train and test all at one go.
     all_df = pd.concat((train_query_df, test_query_df))
-    feature_df = getFeature(all_df, product_df, attribute_df, test_query_df, features="brand,attribute,spelling,nonascii,stopwords,colorExist,color_onehot,brandExist,wmdistance,stemming,word2vec,Word2VecQueryExpansion,tfidf,tfidf_expandedquery,doc2vec,doc2vec_expandedquery,bm25,bm25expandedquery,bm25description,bm25title,bm25brand,doclength")
+    feature_df = getFeature(all_df, product_df, attribute_df, test_query_df, features=desiredFeatures)
 
     # Run personal models from this point onward
     # runOrdinalRegressionRanker(train_query_df, test_query_df)
