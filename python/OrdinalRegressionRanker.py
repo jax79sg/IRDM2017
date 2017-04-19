@@ -176,7 +176,7 @@ class OrdinalRegressionRanker(object):
         print("+++++++++++++++++++++Validation start")
         print("Remove non trainable features...")
 
-
+        savePredictedFilename=savePredictedFilename.split("csv")
         savePrediction=testDF['id'].as_matrix()
         print("Saveprediction=",savePrediction)
         self.xTest=testDF
@@ -192,7 +192,7 @@ class OrdinalRegressionRanker(object):
         self.yPred=self.fittedModel.predict(self.xTest)
         predictedDF['relevance_int'] = self.yPred
 
-        avgNDCG=NDCG_Eval().computeAvgNDCG(testDF, predictedDF,"nDCG_"+savePredictedFilename)
+        avgNDCG=NDCG_Eval().computeAvgNDCG(testDF, predictedDF,savePredictedFilename[0]+"nDCG"+".csv")
         # print("avgNDCG:",avgNDCG)
         print("Converting to old labels")
         dp=DataPreprocessing()
@@ -210,10 +210,14 @@ class OrdinalRegressionRanker(object):
         assert(savePrediction.size==ypredDF.size)
         # predictionResults=pd.concat([savePrediction,ypredDF],axis=1)
         predictionResults=savePrediction.join(ypredDF)
-        predictionResults.to_csv(savePredictedFilename, index=False)
+        predictionResults.to_csv(savePredictedFilename[0]+"csv", index=False)
         print("predictionResults.size:",predictionResults.shape)
         print("MSE:", mean_squared_error(self.yTest, self.yPred))
         print("RMSE:", sqrt(mean_squared_error(self.yTest, self.yPred)))
+        writeResults=str(savePredictedFilename[0])+"RMSE_NDCG_"+".csv"+"\nRMSE:"+str(sqrt(mean_squared_error(self.yTest, self.yPred)))+"\nNDCG:"+str(avgNDCG)
+        file = open(savePredictedFilename[0]+"RMSE_NDCG_"+".csv", 'w')
+        file.write(writeResults)
+        file.close()
         print("+++++++++++++++++++++Validation end")
 
 
@@ -516,7 +520,7 @@ if __name__ == "__main__":
     # trainDF,validateDF=dp.generateValidationSet(train_df)
     orModel = OrdinalRegressionRanker('ordridge')
     orModel.train(feature_train_df, None)
-    orModel.validate(feature_train_df, 'ordinal_train.csv')
+    orModel.validate(feature_train_df, '../data/ordinal_train.csv')
     # orModel.gridSearch(feature_train_df, None)
     print("####  Completed: OrdinalRegression ordridge training ####")
     utility.checkpointTimeTrack()
@@ -571,11 +575,11 @@ if __name__ == "__main__":
     utility.checkpointTimeTrack()
     print("test_public_df:\n",list(test_public_df))
     print("Validating public testset")
-    orModel.validate(test_public_df,'ordinal_public.csv')
+    orModel.validate(test_public_df,'../data/ordinal_public.csv')
     utility.checkpointTimeTrack()
     print("test_private_df:\n",list(test_private_df))
     print("Validating private testset")
-    orModel.validate(test_private_df,'ordinal_private.csv')
+    orModel.validate(test_private_df,'../data/ordinal_private.csv')
     utility.checkpointTimeTrack()
 
 
