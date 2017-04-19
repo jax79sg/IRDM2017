@@ -3,10 +3,11 @@ Information Retreival and Data Mining
 
 ## Manuals
 ** Generate features:**
-1. Ensure datasets data.original/attributes.csv, data.original/product_descriptions.csv, data.original/test.csv and data.original/train.csv are available.
-1. Set the desired features to generate in desiredFeatures variable of RunMe.py
-2. Run RunMe.py
-3. Generated csv will be located in data/features_full_20170416.csv
+1. Warning: This could take half a day to complete.
+2. Ensure datasets data.original/attributes.csv, data.original/product_descriptions.csv, data.original/test.csv and data.original/train.csv are available.
+3. Set the desired features to generate in desiredFeatures variable of RunMe.py
+4. Run RunMe.py
+5. Generated csv will be located in data/features_full_20170416.csv
 
 ** Train and generate results for Ordinal Regression:**
 1. Ensure featureset data/features_doc2vec_sense2vec_pmi_20170418.csv is available.
