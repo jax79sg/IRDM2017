@@ -15,7 +15,15 @@ Information Retreival and Data Mining
 3. Run OrdinalRegressionRanker.py
 4. Results will be generated on screen.
 
+** Train and generate results for DNN:**
+1. Ensure featureset data/features_doc2vec_sense2vec_20170416.csv is available.
+2. If using a different featureset, please change file reference in DNN.ipynb (full_features_filename variable)
+3. Run DNN.ipynb 
+4. RMSE results will be generated on screen and results can be output to file specified.
 
+** Generate ensemble results:**
+1. Ensure public and private test sets predictions are available in the format 'id','pred_revelance' columns.
+2. Run ensemble.ipynb to generate ensemble prediction csv and RMSE, NDCG scores on screen.
 
 ## To-Do list
 **Ideas for Data Processing:**
@@ -44,6 +52,10 @@ More ideas of features can be found here https://www.microsoft.com/en-us/researc
     + LMIR.JM
     + LDA
     + PMI (Kah Siong: Done)
+    + Sense2vec (Min: Done)
+    + Productuid (Min: Done)
+    + spaCy noun chunks (Min: Done)
+
 
 + Cosine Similarity (Chun Siong: Done)
 + Doc2Vec (Chun Siong: Done)
@@ -53,8 +65,6 @@ More ideas of features can be found here https://www.microsoft.com/en-us/researc
 + Output all computed feature to Ranklib format
 
 **Ideas for Model Selection:**
-+ Neural network
-    + Match tensor - (Min: Reading on this https://arxiv.org/pdf/1701.07795.pdf)
 
 + Pointwise
     + Logistic Regression (Kah Siong: Done)
@@ -64,6 +74,10 @@ More ideas of features can be found here https://www.microsoft.com/en-us/researc
     + Boosted Regression
     + Perception <- perceptron? 
     + Gradient Boosted Regression Trees (Chun Siong: Done)
+    + Deep learning methods
+        + RNN - Match tensor https://arxiv.org/pdf/1701.07795.pdf - (Min: Done)
+        + CNN -  (Min: Done)
+        + DNN -  (Min: Done)
 
 + Pairwise
     + RankNet (RankLib)
@@ -77,6 +91,9 @@ More ideas of features can be found here https://www.microsoft.com/en-us/researc
     + ListNet (RankLib)
     + AdaRank (RankLib)
 
++ Ensemble 
+    + weighted ensemble (Min: Done)
+    
 **Ideas for Evaluation:**
 + NDCG (Kah Siong: Done to accommodate our datasets)
 + RMSE
