@@ -25,6 +25,18 @@ Information Retreival and Data Mining
 1. Ensure public and private test sets predictions are available in the format 'id','pred_revelance' columns.
 2. Run ensemble.ipynb to generate ensemble prediction csv and RMSE, NDCG scores on screen.
 
+** Generate features – for Random Forest & Bagging Algorithms:**
+Ensure datasets attributes.csv, product_descriptions.csvtest.csv and train.csv are available.
+Run RandomForestRanker.ipynb
+The Generated csv will be located in data/features_rf_bag_lg.csv
+
+** Train and generate results for Random Forest & Bagging Algorithms:**
+Ensure featureset data/ features_rf_bag_lg.csv is available. (optional)
+If using a different featureset, uncomment the appropriate line or if constructed from scratch please change file reference in RandomForestRanker.ipynb (df_full_clean.to_csv('features_rf_bag_lg.csv',index=False))
+Run RandomForestRanker.ipynb
+RMSE results for the selected algorithms (either Random Forest, Bagging or Logistic Regrassion) will be generated on screen and results can be output to file path specified.
+
+
 ## To-Do list
 **Ideas for Data Processing:**
 + Stemming + lower case (Chun Siong: Done)
