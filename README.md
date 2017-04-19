@@ -13,7 +13,7 @@ Information Retreival and Data Mining
 1. Ensure featureset data/features_doc2vec_sense2vec_pmi_20170418.csv is available.
 2. If using a different featureset, please change file reference in OrdinalRegressionRanker.py (myFeatureSetFileReference variable)
 3. Run OrdinalRegressionRanker.py
-4. Results will be generated on screen.
+4. Results will be generated on screen or ordinal_private.RMSE_NDCG_.csv and ordinal_public.RMSE_NDCG_.csv
 
 ** Train and generate results for DNN:**
 1. Ensure featureset data/features_doc2vec_sense2vec_20170416.csv is available.
