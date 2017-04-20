@@ -112,8 +112,8 @@ class XGBoostRanker():
         y_pred = [y*3 for y in y_pred]
         y_train = [y*3 for y in y_train]
 
-        for i in range(30):
-            print("Gold: %.2f  Pred: %.2f" %(y_train[i], y_pred[i]))
+        # for i in range(30):
+        #     print("Gold: %.2f  Pred: %.2f" %(y_train[i], y_pred[i]))
 
         print("Train RMSE: ", rmse(y_train, y_pred))
 
@@ -175,7 +175,7 @@ class XGBoostRanker():
 
 
 
-    def test_Model(self, test_df):
+    def test_Model(self, test_df, dataname):
         y_test = test_df[self.y_parameter]
         x_test = test_df[self.x_parameter]
 
@@ -190,9 +190,9 @@ class XGBoostRanker():
         # for i in range(30):
         #     print("Gold: %.2f  Pred: %.2f" %(y_test[i], y_pred[i]))
 
-        print("Test RMSE: ", rmse(y_test, y_pred))
+        print(dataname + " RMSE: ", rmse(y_test, y_pred))
 
-        print(test_df.columns)
+        # print(test_df.columns)
 
         result_df = pd.DataFrame()
         result_df['search_term'] = test_df['search_term']
@@ -260,55 +260,51 @@ def rmse(y_gold, y_pred):
 
 if __name__ == "__main__":
     reader = HomeDepotReader()
-    # feature_df = reader.getBasicDataFrame("../data/features_doc2vec_sense2vec_pmi_20170418.csv")
     feature_df = reader.getBasicDataFrame("../data/features_final_20170419.csv")
-    # feature_df = reader.getBasicDataFrame("../data/features_Doc2Vec_retrain.csv")
 
-    # print(feature_df.info())
     columnname = feature_df.columns
     feature_train_df = feature_df
-
-    # print(columnname)
 
     feature_train_df = feature_df[:74067]
     feature_test_df = feature_df[74067:]
 
-    # feature_test_df['relevance'] = np.zeros(166693)
-    # feature_test_df['relevance_int'] = np.zeros(166693)
     feature_test_df.pop('relevance')
-    # print(feature_test_df.info())
 
     soln_filename = '../data/solution.csv'
     soln_df = pd.read_csv(soln_filename, delimiter=',', low_memory=False, encoding="ISO-8859-1")
-    # print(soln_df.info())
     dp = DataPreprocessing()
-    # df_a.merge(df_b, on='mukey', how='left')
     test_private_df = dp.getGoldTestSet(feature_test_df, soln_df,
-                                        testsetoption='Private')  # ,savepath='../data/test_private_gold.csv')
+                                        testsetoption='Private')
     test_public_df = dp.getGoldTestSet(feature_test_df, soln_df,
-                                       testsetoption='Public')  # savepath='../data/test_public_gold.csv')
-
-    # print(feature_train_df)
+                                       testsetoption='Public')
 
     print("####  Running: XGBoostRanker.runXGBoostRanker() ####")
     xgb = XGBoostRanker(feature_train_df)
-    # xgb.train(feature_df)
     xgb.train_Regressor(feature_train_df)
-    # xgb.gridSearch(feature_df)
-    # xgb.gridSearch_Regressor(feature_train_df)
 
-    # result_df = xgb.test_Model(test_public_df)
-    result_df = xgb.test_Model(test_private_df)
+    result_public_df = xgb.test_Model(test_public_df, "Public")
+    result_private_df = xgb.test_Model(test_private_df, "Private")
 
     # gold_df = pd.DataFrame()
     # gold_df['search_term'] = test_public_df['search_term']
     # gold_df['product_uid'] = test_public_df['product_uid']
     # gold_df['relevance_int'] = test_public_df['relevance']
     # ndcg = NDCG_Eval()
-    # ndcg.computeAvgNDCG(gold_df, result_df, "../data/ndcg.csv")
+    # ndcg.computeAvgNDCG(gold_df, result_public_df, "../data/ndcg.csv")
     #
-    # result_df.pop('product_uid')
-    # result_df.pop('search_term')
-    # result_df.pop('relevance_int')
-    # # print(result_df.columns)
-    # HomeDepotCSVWriter().dumpCSV(result_df, "../data/xgboost_public.csv")
+    # gold_df = pd.DataFrame()
+    # gold_df['search_term'] = test_private_df['search_term']
+    # gold_df['product_uid'] = test_private_df['product_uid']
+    # gold_df['relevance_int'] = test_private_df['relevance']
+    # ndcg = NDCG_Eval()
+    # ndcg.computeAvgNDCG(gold_df, result_private_df, "../data/ndcg.csv")
+
+    result_public_df.pop('product_uid')
+    result_public_df.pop('search_term')
+    result_public_df.pop('relevance_int')
+    HomeDepotCSVWriter().dumpCSV(result_public_df, "../data/xgboost_public.csv")
+
+    result_private_df.pop('product_uid')
+    result_private_df.pop('search_term')
+    result_private_df.pop('relevance_int')
+    HomeDepotCSVWriter().dumpCSV(result_private_df, "../data/xgboost_private.csv")

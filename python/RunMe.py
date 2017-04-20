@@ -16,7 +16,7 @@ def getFeature(train_query_df, product_df, attribute_df, test_query_df, features
     feature_df = HomeDepotFeature().getFeature(train_query_df, product_df, attribute_df, test_query_df,features=features)
 
     # Write all feature to a CSV. Next time can just read from here
-    dumpFeature2CSV(feature_df, "../data/features_full_20170416.csv")
+    dumpFeature2CSV(feature_df, "../data/features_full.csv")
 
     return feature_df
 
