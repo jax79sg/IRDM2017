@@ -1,4 +1,4 @@
-# IRDM2017
+# IRDM2017 Group 5
 Information Retreival and Data Mining
 
 ## Manuals
