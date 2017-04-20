@@ -7,7 +7,7 @@ Information Retreival and Data Mining
 2. Ensure datasets data.original/attributes.csv, data.original/product_descriptions.csv, data.original/test.csv and data.original/train.csv are available.
 3. Set the desired features to generate in desiredFeatures variable of RunMe.py
 4. Run RunMe.py
-5. Generated csv will be located in data/features_full_20170416.csv
+5. Generated csv will be located in data/features_full.csv
 
 ** Train and generate results for Ordinal Regression:**
 1. Ensure featureset data/features_doc2vec_sense2vec_pmi_20170418.csv is available.
@@ -20,6 +20,12 @@ Information Retreival and Data Mining
 2. If using a different featureset, please change file reference in DNN.ipynb (full_features_filename variable)
 3. Run DNN.ipynb 
 4. RMSE results will be generated on screen and results can be output to file specified.
+
+** Train and generate results for XGBoost:**
+1. Ensure featureset data/features_final_20170419.csv is available.
+2. If using a different featureset, please change file reference in XGBoostRanker.py line 263
+3. Run XGBoostRanker.py
+4. RMSE results will be generated on screen and results.csv are output to file specified.
 
 ** Generate ensemble results:**
 1. Ensure public and private test sets predictions are available in the format 'id','pred_revelance' columns.
@@ -36,7 +42,7 @@ Information Retreival and Data Mining
 3. RMSE results for the selected algorithms (either Random Forest, Bagging or Logistic Regression) will be generated on screen and results can be output to file path specified.
 
 
-## To-Do list
+## Ideas list
 **Ideas for Data Processing:**
 + Stemming + lower case (Chun Siong: Done)
 + Spelling correction (Chun Siong: Done)
